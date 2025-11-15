@@ -1,7 +1,11 @@
 import twilio from "twilio";
 
-const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_FRIENDLY_NAME } =
-  process.env;
+const {
+  TWILIO_ACCOUNT_SID,
+  TWILIO_AUTH_TOKEN,
+  TWILIO_VERIFY_FRIENDLY_NAME,
+  TWILIO_VERIFY_SERVICE_SID,
+} = process.env;
 
 const DEFAULT_FRIENDLY_NAME =
   TWILIO_VERIFY_FRIENDLY_NAME || "Flower Beauty Salon Authentication";
@@ -42,6 +46,11 @@ export const isVerifyConfigured = () =>
 export const ensureVerifyService = async () => {
   const client = ensureClient();
   if (cachedServiceSid) {
+    return cachedServiceSid;
+  }
+
+  if (TWILIO_VERIFY_SERVICE_SID) {
+    cachedServiceSid = TWILIO_VERIFY_SERVICE_SID;
     return cachedServiceSid;
   }
 

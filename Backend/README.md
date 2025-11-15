@@ -1,6 +1,6 @@
 # Flower Beauty Salon - Backend (Express + Mongoose)
 
-This backend provides MongoDB data models and a minimal Express server to support the salon app.
+This backend provides MongoDB data models and an Express server to support the salon app.
 
 ## Prerequisites
 
@@ -9,13 +9,13 @@ This backend provides MongoDB data models and a minimal Express server to suppor
 
 ## Setup
 
-1. Copy env file:
-   - Duplicate `.env.example` to `.env` and update values.
+1. Configure environment variables:
+   - Create `Backend/.env` and set required values (see below).
 2. Install dependencies:
-   - From the `server` folder run `npm install`.
+   - From the `Backend` folder run `npm install` (or from project root use `npm run install:backend`).
 3. Run MongoDB:
-   - Local MongoDB or use Docker: `docker compose up -d`.
-4. Seed initial data:
+   - Local MongoDB, or with Docker: `docker compose -f Backend/docker-compose.yml up -d`.
+4. Seed initial data (optional):
    - `npm run seed`
 5. Start dev server:
    - `npm run dev`
@@ -24,7 +24,7 @@ Server defaults to http://localhost:4000 and exposes `/health`.
 
 ### Midtrans Snap Payments
 
-Configure the following variables in `.env` to enable Midtrans Snap token generation for customer checkout:
+Configure the following variables in `Backend/.env` to enable Midtrans Snap token generation for customer checkout:
 
 - `MIDTRANS_SERVER_KEY` – required server key from the Midtrans dashboard.
 - `MIDTRANS_CLIENT_KEY` – client key used by the frontend Snap script.
@@ -41,7 +41,7 @@ The `/checkout/snap-token` route requires a populated cart and returns both the 
 
 Automated WhatsApp reminders are sent 3 days before a confirmed booking.
 
-Configure the following environment variables in your `.env` file to enable the integration:
+Configure the following environment variables in your `Backend/.env` file to enable the integration:
 
 - `TWILIO_ACCOUNT_SID` – Twilio account SID with WhatsApp access.
 - `TWILIO_AUTH_TOKEN` – Twilio auth token.

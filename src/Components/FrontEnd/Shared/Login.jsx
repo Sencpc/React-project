@@ -7,6 +7,7 @@ import {
 } from "../../../context/AuthContext";
 import LoadingScreen from "./LoadingScreen";
 import logo from "../../../assets/SharedAsset/logo.png";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -28,6 +29,7 @@ const Login = () => {
     }
     return Boolean(localStorage.getItem(STORAGE_KEYS.token));
   });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -157,11 +159,7 @@ const Login = () => {
           {/* Logo and Header */}
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <img
-                src={logo}
-                alt="Logo"
-                className="h-20 w-auto"
-              />
+              <img src={logo} alt="Logo" className="h-20 w-auto" />
             </div>
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
               Welcome Back
@@ -330,12 +328,13 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
                   className="font-medium text-red-400 hover:text-red-500 transition duration-150 ease-in-out"
                 >
                   Forgot password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -385,6 +384,9 @@ const Login = () => {
           © 2025 All rights reserved.
         </p>
       </div>
+      {showForgotPassword && (
+        <ForgotPasswordModal onClose={() => setShowForgotPassword(false)} />
+      )}
     </div>
   );
 };
