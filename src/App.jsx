@@ -21,6 +21,7 @@ import CustomerCart from "./Components/FrontEnd/User/CustomerCart";
 import ScrollToTop from "./Components/FrontEnd/Shared/ScrollToTop";
 import AuthProvider from "./context/AuthProvider";
 import ProtectedRoute from "./Components/FrontEnd/Shared/ProtectedRoute";
+import AboutUs from "./Components/FrontEnd/User/AboutUs";
 
 const withGuestLayout = (component) => <GuestLayout>{component}</GuestLayout>;
 
@@ -38,6 +39,7 @@ const App = () => (
         <Route path="/register" element={<Register />} />
         <Route path="/book" element={withGuestLayout(<Book />)} />
         <Route path="/blog" element={withGuestLayout(<Blog />)} />
+        <Route path="/about" element={withGuestLayout(<AboutUs />)} />
 
         <Route
           path="/customer/dashboard"
@@ -98,6 +100,15 @@ const App = () => (
           element={
             <ProtectedRoute allowedRoles={["customer"]}>
               {withCustomerLayout(<Blog />)}
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customer/about"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              {withCustomerLayout(<AboutUs />)}
             </ProtectedRoute>
           }
         />

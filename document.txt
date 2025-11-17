@@ -1,0 +1,27 @@
+Kami Menggunakan 2 Scrum , Berikut adalah task task yang dilakukan selama proses pengerjaan berlangsung
+
+Sprint 1 Task : 
+- Rancangan Desain Frontend :Membuat wireframe dan mockup tampilan admin (dashboard, navigasi, dan UI utama). (done)
+- Rancangan Desain Database :Menyusun struktur tabel dan relasi untuk modul akun, layanan, booking, konten, staff, dan pembayaran. (done)
+- Desain Backend Admin :Menyusun arsitektur API, struktur folder backend, dan konfigurasi server serta middleware awal. (done)
+- Halaman Login & Middleware :Implementasi login admin dan sistem autentikasi untuk akses dashboard. (done)
+- Manajemen Akun :Integrasi data user, tampilan profil, dan fitur komunikasi antar pengguna. (done)
+- Manajemen Layanan :Implementasi CRUD layanan, pengaturan harga, dan status aktif/non-aktif. (done)
+- Manajemen Booking :Menampilkan daftar dan detail booking, pengaturan slot, serta penugasan staff. (done)
+- Manajemen Konten Website :Implementasi CRUD konten homepage, About Us, dan promo. (done)
+- Manajemen Staff / Stylist :Implementasi CRU staff, pengaturan jadwal, dan tampilan performa staff. (done)
+- Manajemen Pembayaran :Integrasi payment gateway, verifikasi pembayaran, dan tampilan laporan transaksi. (done)
+- Settings & Konfigurasi :Pengaturan informasi salon, nominal DP, payment gateway, dan timing reminder. (pending)
+
+Sprint 2 Task : 
+- Halaman Register & Login Customer: Implementasi form registrasi customer dengan validasi nama dan nomor telepon serta sistem login customer menggunakan nama dan nomor telepon yang telah terdaftar. (done)
+- Dashboard Customer: Implementasi tampilan dashboard yang menampilkan ringkasan total booking, riwayat booking terkini, dan quick action menu di sidebar untuk navigasi cepat. (done)
+- Sistem Booking Customer: Implementasi form booking multi-step (pilih layanan → pilih stylist → pilih waktu → konfirmasi), validasi slot ketersediaan, pengaturan metode pembayaran (DP atau full payment), dan kalkulasi harga otomatis. (done)
+- Manajemen Booking Customer: Implementasi tampilan list booking customer yang menampilkan seluruh booking aktif maupun yang sudah selesai, detail booking lengkap, fitur cancel booking, dan reschedule booking.
+- Profile Customer: Implementasi halaman profile customer dengan fitur untuk melihat dan mengubah informasi diri (nama, nomor telepon, alamat), serta fitur change password atau PIN.
+- Reminder System: Implementasi sistem notifikasi otomatis melalui in-app notification dan WhatsApp untuk mengingatkan customer tentang booking yang akan datang berdasarkan timing yang telah dikonfigurasi oleh admin.
+- Homepage/Halaman Utama (Guest): Implementasi halaman landing page yang menampilkan highlight layanan unggulan, tagline salon yang menarik, gambar utama/hero section, dan call-to-action untuk melakukan booking atau registrasi.
+- Halaman About Us (Guest): Implementasi halaman yang menampilkan informasi lengkap tentang salon meliputi sejarah, visi misi, tim stylist unggulan, lokasi salon, dan jam operasional.
+- Halaman Layanan (Guest): Implementasi halaman katalog layanan yang menampilkan daftar lengkap layanan salon dengan deskripsi detail, harga, estimasi durasi, dan gambar ilustrasi untuk setiap layanan.
+- Halaman Blog/Tips (Guest): Implementasi halaman blog yang menampilkan artikel-artikel bermanfaat mengenai tren gaya rambut terkini, tips perawatan rambut, dan informasi seputar kecantikan yang dapat diakses oleh semua pengunjung.
+- Settings & Konfigurasi :Pengaturan informasi salon, nominal DP, payment gateway, dan timing reminder.

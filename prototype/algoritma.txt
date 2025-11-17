@@ -1,0 +1,155 @@
+ALGORITMA LoginAuthentication
+    input_username : string
+    input_password : string
+    user : object
+    hashed_password : string
+    is_password_match : boolean
+    jwt_token : string
+    current_time : datetime
+
+    READ input_username, input_password
+    
+    user ← QUERY("SELECT * FROM users WHERE username = input_username")
+    
+    IF user == NULL THEN
+        RETURN {
+            status: "error",
+            message: "Username tidak ditemukan"
+        }
+    ENDIF
+    
+    hashed_password ← user.password
+    is_password_match ← bcrypt.compare(input_password, hashed_password)
+    
+    IF NOT is_password_match THEN
+        RETURN {
+            status: "error",
+            message: "Password salah"
+        }
+    ENDIF
+    
+    jwt_token ← JWT.generate({
+        user_id: user.id,
+        username: user.username,
+        role: user.role
+    })
+    
+    current_time ← CURRENT_TIMESTAMP()
+    QUERY("UPDATE users SET lastLogin = current_time WHERE id = user.id")
+    
+    user_data ← {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+    }
+    
+    RETURN {
+        status: "success",
+        token: jwt_token,
+        data: user_data
+    }
+END ALGORITMA
+
+ALGORITMA VerifyTokenAuthorization
+    token : string
+    decoded_token : object
+    user_id : integer
+    user_role : string
+    required_role : string
+    user_data : object
+
+    // Ambil token dari request header
+    token ← REQUEST.headers["Authorization"]
+    
+    IF token == NULL OR token == "" THEN
+        RETURN {
+            status: "error",
+            code: 401,
+            message: "Token tidak ditemukan, akses ditolak"
+        }
+    ENDIF
+    
+    // Hapus prefix "Bearer " jika ada
+    IF token.startsWith("Bearer ") THEN
+        token ← token.substring(7)
+    ENDIF
+    
+    TRY
+        // Verifikasi dan decode JWT token
+        decoded_token ← JWT.verify(token, SECRET_KEY)
+        
+        // Cek apakah token expired
+        current_time ← CURRENT_TIMESTAMP()
+        IF decoded_token.exp < current_time THEN
+            RETURN {
+                status: "error",
+                code: 401,
+                message: "Token telah expired, silakan login kembali"
+            }
+        ENDIF
+        
+        // Ambil informasi user dari token
+        user_id ← decoded_token.user_id
+        user_role ← decoded_token.role
+        
+        // Simpan user info ke request untuk digunakan di endpoint
+        REQUEST.user ← {
+            id: user_id,
+            username: decoded_token.username,
+            role: user_role
+        }
+        
+        // Lanjutkan ke proses selanjutnya
+        NEXT()
+        
+    CATCH error
+        RETURN {
+            status: "error",
+            code: 403,
+            message: "Token tidak valid atau rusak"
+        }
+    END TRY
+END ALGORITMA
+
+
+ALGORITMA CheckRoleAuthorization
+    user_role : string
+    required_roles : array of string
+    has_permission : boolean
+
+    // Ambil role user dari request (sudah di-set oleh VerifyTokenAuthorization)
+    user_role ← REQUEST.user.role
+    
+    // Ambil role yang dibutuhkan untuk mengakses resource
+    required_roles ← ENDPOINT.required_roles
+    
+    IF user_role == NULL THEN
+        RETURN {
+            status: "error",
+            code: 401,
+            message: "User tidak terautentikasi"
+        }
+    ENDIF
+    
+    // Cek apakah user role ada dalam daftar required roles
+    has_permission ← FALSE
+    
+    FOR EACH role IN required_roles DO
+        IF user_role == role THEN
+            has_permission ← TRUE
+            BREAK
+        ENDIF
+    END FOR
+    
+    IF NOT has_permission THEN
+        RETURN {
+            status: "error",
+            code: 403,
+            message: "Akses ditolak, role tidak memiliki permission"
+        }
+    ENDIF
+    
+    // User memiliki permission, lanjutkan ke endpoint
+    NEXT()
+END ALGORITMA
