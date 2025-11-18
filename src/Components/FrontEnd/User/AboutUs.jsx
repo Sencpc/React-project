@@ -7,10 +7,6 @@ const AboutUs = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4">
             About Us
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Memberikan layanan kecantikan terbaik dengan sentuhan profesional dan
-            teknologi modern
-          </p>
         </div>
 
         {/* Main Content */}
