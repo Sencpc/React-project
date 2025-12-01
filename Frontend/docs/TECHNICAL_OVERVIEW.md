@@ -54,6 +54,8 @@ VITE_MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxxxxxxxxxxxxxx
 VITE_MIDTRANS_SNAP_URL=https://app.sandbox.midtrans.com/snap/snap.js
 ```
 
+`VITE_API_URL` is mandatory—the frontend will throw at build/start time if it is missing so deployments always declare the API host explicitly.
+
 Backend `.env` (in `Backend/`):
 
 ```
@@ -167,8 +169,9 @@ docker compose -f Backend/docker-compose.yml up -d
 # Seed sample data (optional)
 npm run backend:seed
 
-# Run dev: Vite + API together
-npm run dev
+# Run dev servers (separate terminals)
+npm run backend:dev   # terminal 1
+npm run dev           # terminal 2
 ```
 
 ## Deployment Notes

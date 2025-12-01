@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
 import { useAuth } from "../../../context/AuthContext";
+import { API_BASE_URL } from "../../../config/env.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const DEFAULT_PAGE_SIZE = 10;
 const ACTIVE_BOOKING_STATUSES = ["pending", "confirmed", "in-progress"];
 

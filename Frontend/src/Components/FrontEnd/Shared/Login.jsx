@@ -9,7 +9,7 @@ import LoadingScreen from "./LoadingScreen";
 import logo from "../../../assets/SharedAsset/logo.png";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { API_BASE_URL } from "../../../config/env.js";
 
 const Login = () => {
   const navigate = useNavigate();

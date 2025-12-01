@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { API_BASE_URL } from "../../../config/env.js";
 
 const CustomerProfile = () => {
   const { user, token, updateUser, initializing } = useAuth();

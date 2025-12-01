@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
 import { useAuth } from "../../../context/AuthContext";
+import { API_BASE_URL } from "../../../config/env.js";
 import {
   applyCoupon as applyCouponAction,
   clearCart as clearCartAction,
@@ -13,7 +14,6 @@ import {
   selectCartTotals,
 } from "../../../store/cartSlice";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const MIDTRANS_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || "";
 const MIDTRANS_SNAP_URL =
   import.meta.env.VITE_MIDTRANS_SNAP_URL ||

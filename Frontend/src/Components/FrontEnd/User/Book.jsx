@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../../../context/AuthContext";
 import { addItem, selectCartCount } from "../../../store/cartSlice";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { API_BASE_URL } from "../../../config/env.js";
 
 const resolveServiceId = (service) =>
   service?.id ?? service?._id ?? service?.serviceId ?? service?.slug ?? "";

@@ -60,7 +60,7 @@ BOOKING_REMINDER_TZ=Asia/Jakarta
 
 Notes:
 
-- `VITE_API_URL` is used by the frontend to reach the Express API.
+- `VITE_API_URL` is required; the frontend throws an error at startup if it is missing so you always know which API host you are targeting (local, staging, prod, etc.).
 - `VITE_MIDTRANS_CLIENT_KEY` enables the Snap modal in the cart (`CustomerCart.jsx`).
 - Backend Midtrans keys are required to generate Snap tokens for checkout.
 
@@ -93,20 +93,18 @@ npm run backend:seed
 
 ## Run the App (dev)
 
-This will start both the Vite dev server and the Express API concurrently:
+Run the backend and frontend in separate terminals so each service can point at its own environment variables:
 
 ```powershell
+# Terminal 1 – Backend API
+npm run backend:dev
+
+# Terminal 2 – Frontend (Vite)
 npm run dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:4000 (health check at `/health`)
-
-Alternatively, you can run just the backend:
-
-```powershell
-npm run backend:dev
-```
+- Frontend: http://localhost:5173 (proxied API requests go to `VITE_API_URL`).
+- Backend: whatever host/port you configured via `PORT`/`VITE_API_URL` (default `http://localhost:4000`).
 
 ## Payments (Midtrans Snap)
 
@@ -136,7 +134,7 @@ See `Backend/README.md` for API routes, models, reminder jobs, and Twilio Verify
 
 ## Scripts Reference (root)
 
-- `npm run dev` – start frontend + backend together.
+- `npm run dev` – frontend (Vite dev server).
 - `npm run backend:dev` – backend only (nodemon).
 - `npm run backend:start` – backend only (node).
 - `npm run backend:seed` – run backend seed script.

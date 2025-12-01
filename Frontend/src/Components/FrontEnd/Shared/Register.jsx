@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingScreen from "./LoadingScreen";
 import logo from "../../../assets/SharedAsset/logo.png";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+import { API_BASE_URL } from "../../../config/env.js";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -100,7 +99,7 @@ const Register = () => {
     try {
       // Minimum 2 second delay
       const startTime = Date.now();
-      
+
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: {
@@ -131,7 +130,7 @@ const Register = () => {
       // Wait for minimum 2 seconds
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, 1000 - elapsedTime);
-      await new Promise(resolve => setTimeout(resolve, remainingTime));
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
 
       setSuccessMessage(
         data.message || "Account created successfully. Redirecting to login..."
@@ -191,11 +190,7 @@ const Register = () => {
           {/* Logo and Header */}
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <img
-                src={logo}
-                alt="Logo"
-                className="h-20 w-auto"
-              />
+              <img src={logo} alt="Logo" className="h-20 w-auto" />
             </div>
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
               Create Account
