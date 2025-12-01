@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth, ROLE_REDIRECTS } from "../../../context/AuthContext";
 import logo from "../../../assets/SharedAsset/logo.png";
+import { Button } from "antd";
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -181,7 +182,9 @@ const Navbar = () => {
           ) : (
             <li>
               <Link to="/login" onClick={() => setIsOpen(false)}>
-                <button className="w-full text-left bg-red-400 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full">Login</button>
+                <Button className="w-full text-left bg-red-400 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full h-auto border-none hover:!text-white">
+                  Login
+                </Button>
               </Link>
             </li>
           )}
