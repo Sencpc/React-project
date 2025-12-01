@@ -1,3 +1,5 @@
+import salonLogo from "../../../assets/SharedAsset/logo.png";
+
 const AboutUs = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 py-16 px-4 sm:px-6 lg:px-8">
@@ -16,7 +18,7 @@ const AboutUs = () => {
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
               <img
-                src="/src/assets/SharedAsset/logo.png"
+                src={salonLogo}
                 alt="Salon Cantik Indah"
                 className="relative w-full max-w-md h-auto object-cover rounded-2xl shadow-2xl"
               />
@@ -48,9 +50,10 @@ const AboutUs = () => {
               </div>
               <p className="text-gray-600 leading-relaxed">
                 Flower Beauty Salon menyediakan layanan potong rambut, styling,
-                perawatan wajah, manicure & pedicure, serta treatment profesional
-                lainnya dengan tenaga ahli berpengalaman. Kami berkomitmen untuk
-                memberikan pengalaman kecantikan yang tak terlupakan.
+                perawatan wajah, manicure & pedicure, serta treatment
+                profesional lainnya dengan tenaga ahli berpengalaman. Kami
+                berkomitmen untuk memberikan pengalaman kecantikan yang tak
+                terlupakan.
               </p>
             </div>
           </div>
@@ -95,7 +98,9 @@ const AboutUs = () => {
                 </svg>
                 <div>
                   <p className="text-sm text-gray-500">Telepon</p>
-                  <p className="font-semibold text-gray-900">+62 898-5452-5596</p>
+                  <p className="font-semibold text-gray-900">
+                    +62 898-5452-5596
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -218,9 +223,7 @@ const AboutUs = () => {
                 </svg>
                 <div>
                   <p className="text-sm text-gray-500">Jam Operasional</p>
-                  <p className="font-semibold text-gray-900">
-                    Senin - Sabtu
-                  </p>
+                  <p className="font-semibold text-gray-900">Senin - Sabtu</p>
                   <p className="text-gray-600">09:00 - 20:00 WIB</p>
                 </div>
               </div>
