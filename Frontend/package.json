@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n web,api -c blue,magenta \"vite\" \"npm run backend:dev\"",
+    "dev": "vite",
     "backend:dev": "npm --prefix Backend run dev",
     "backend:start": "npm --prefix Backend start",
     "backend:seed": "npm --prefix Backend run seed",
