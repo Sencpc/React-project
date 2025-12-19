@@ -89,6 +89,19 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
         ></path>
       ),
     },
+    {
+      name: "Settings",
+      path: "/admin/settings",
+      icon: "svg",
+      svg: (
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M11.983 13.25a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5zM20 12a8.001 8.001 0 01-12.906 6.32m-.758-.61A7.963 7.963 0 014 12c0-1.236.28-2.406.78-3.45m1.45-2.19A7.975 7.975 0 0112 4c1.236 0 2.406.28 3.45.78m2.19 1.45A7.963 7.963 0 0120 12z"
+        ></path>
+      ),
+    },
   ];
 
   const isActive = (path) => {

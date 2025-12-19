@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const GeneralSchema = new mongoose.Schema(
   {
     businessName: String,
+    description: String,
     address: String,
     phone: String,
     email: String,
