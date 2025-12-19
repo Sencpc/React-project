@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Model1 from '../../../assets/SharedAsset/Model1.jpg'
 import Model2 from '../../../assets/SharedAsset/Model2.jpg'
 import Model3 from '../../../assets/SharedAsset/Model3.jpg'
 import { ClockCircleOutlined, StarFilled, WhatsAppOutlined } from '@ant-design/icons'
 import { Button } from 'antd'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [settings, setSettings] = useState(null)
   
   const slides = [
     {
@@ -32,6 +35,57 @@ const Home = () => {
 
     return () => clearInterval(interval)
   }, [slides.length])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    const loadSettings = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/settings/public`, {
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+        })
+        const payload = await response.json()
+        if (!response.ok) {
+          throw new Error(payload?.message || 'Failed to load settings')
+        }
+        setSettings(payload?.settings ?? null)
+      } catch (error) {
+        if (error?.name === 'AbortError') return
+        console.error(error)
+        setSettings(null)
+      }
+    }
+
+    loadSettings()
+
+    return () => controller.abort()
+  }, [])
+
+  const homeInfo = useMemo(() => {
+    const general = settings?.general ?? {}
+
+    const phoneRaw =
+      typeof general.phone === 'string' && general.phone.trim().length > 0
+        ? general.phone.trim()
+        : '089-854-525-596'
+
+    const phoneDigits = phoneRaw.replace(/\D/g, '')
+
+    const address =
+      typeof general.address === 'string' && general.address.trim().length > 0
+        ? general.address.trim()
+        : 'Jl. Gubeng Kertajaya V F Blok F No.32, Airlangga, Kec. Gubeng, Surabaya\nRT.007/RW.03'
+
+    const hours = Array.isArray(general.hours) ? general.hours : []
+
+    return {
+      phoneText: phoneRaw,
+      whatsappHref: phoneDigits ? `https://wa.me/${phoneDigits}` : 'https://wa.me/628985452559',
+      addressLines: address.split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
+      hours,
+    }
+  }, [settings])
 
   return (
     <div className="bg-white">
@@ -62,11 +116,11 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-16 text-gray-800 max-w-6xl mx-auto">
             <div className="flex flex-col items-center text-center md:text-left md:items-start w-full">
               <h2 className="text-base md:text-lg font-bold mb-3 md:mb-4 text-gray-900">Layanan pelanggan</h2>
-              <a href="https://wa.me/628985452559" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-red-400 transition-colors">
+              <a href={homeInfo.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-red-400 transition-colors">
                 <div className="w-10 h-10 bg-red-300 rounded-full flex items-center justify-center flex-shrink-0">
                   <WhatsAppOutlined style={{ fontSize: '24px', color: '#ffffff' }} />
                 </div>
-                <span className="text-base md:text-lg">089-854-525-596</span>
+                <span className="text-base md:text-lg">{homeInfo.phoneText}</span>
               </a>
             </div>
             <div className="flex flex-col items-center text-center md:text-left md:items-start w-full">
@@ -79,8 +133,9 @@ const Home = () => {
                   </svg>
                 </div>
                 <div className="text-base leading-relaxed">
-                  <p>Jl. Gubeng Kertajaya V F Blok F No.32, Airlangga, Kec. Gubeng, Surabaya</p>
-                  <p>RT.007/RW.03</p>
+                  {homeInfo.addressLines.map((line, index) => (
+                    <p key={`address-line-${index}`}>{line}</p>
+                  ))}
                 </div>
               </div>
             </div>
@@ -91,8 +146,18 @@ const Home = () => {
                   <ClockCircleOutlined style={{ fontSize: '24px', color: '#ffffff' }} />
                 </div>
                 <div className="text-base leading-relaxed">
-                  <p>Open Tuesday - Sunday</p>
-                  <p>9.00 - 18.00</p>
+                  {homeInfo.hours.length > 0 ? (
+                    homeInfo.hours.map((row, index) => (
+                      <p key={`hour-row-${index}`}>
+                        {row?.day}: {row?.open} - {row?.close}
+                      </p>
+                    ))
+                  ) : (
+                    <>
+                      <p>Open Tuesday - Sunday</p>
+                      <p>9.00 - 18.00</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

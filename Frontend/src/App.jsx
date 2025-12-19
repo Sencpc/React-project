@@ -5,6 +5,7 @@ import BookManage from "./Components/FrontEnd/Admin/BookManage";
 import CouponManage from "./Components/FrontEnd/Admin/CouponManage";
 import ServiceManage from "./Components/FrontEnd/Admin/ServiceManage";
 import Transaction from "./Components/FrontEnd/Admin/Transaction";
+import SettingConfiguration from "./Components/FrontEnd/Admin/SettingConfiguration";
 import GuestLayout from "./Components/FrontEnd/Layouts/GuestLayout";
 import CustomerLayout from "./Components/FrontEnd/Layouts/CustomerLayout";
 import Home from "./Components/FrontEnd/User/Home";
@@ -167,6 +168,14 @@ const App = () => (
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <Transaction />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <SettingConfiguration />
             </ProtectedRoute>
           }
         />
