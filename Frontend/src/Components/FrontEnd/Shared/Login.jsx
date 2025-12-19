@@ -8,7 +8,11 @@ import {
 import LoadingScreen from "./LoadingScreen";
 import logo from "../../../assets/SharedAsset/logo.png";
 import ForgotPasswordModal from "./ForgotPasswordModal";
-import { ArrowLeftOutlined, EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+} from "@ant-design/icons";
 import { API_BASE_URL } from "../../../config/env.js";
 import { Input } from "antd";
 
@@ -91,6 +95,12 @@ const Login = () => {
 
         // Minimum 2 second delay
         const startTime = Date.now();
+
+        if (!API_BASE_URL) {
+          throw new Error(
+            "API endpoint not configured. Please set VITE_API_URL in your environment."
+          );
+        }
 
         const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
           method: "POST",
@@ -203,9 +213,9 @@ const Login = () => {
                       />
                     </svg>
                   </div>
-                  <Input 
-                    size="large" 
-                    placeholder="Enter your email" 
+                  <Input
+                    size="large"
+                    placeholder="Enter your email"
                     id="email"
                     name="email"
                     type="email"
@@ -250,7 +260,9 @@ const Login = () => {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                    iconRender={(visible) =>
+                      visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                    }
                     prefix={
                       <svg
                         className="h-5 w-5 text-gray-400"
@@ -267,7 +279,9 @@ const Login = () => {
                       </svg>
                     }
                     className={`w-full rounded-lg ${
-                      errors.password ? "border-red-400 hover:border-red-400 focus:border-red-400" : "border-gray-300"
+                      errors.password
+                        ? "border-red-400 hover:border-red-400 focus:border-red-400"
+                        : "border-gray-300"
                     }`}
                     size="large"
                   />
