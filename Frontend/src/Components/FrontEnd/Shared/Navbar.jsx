@@ -2,55 +2,90 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth, ROLE_REDIRECTS } from "../../../context/AuthContext";
 import logo from "../../../assets/SharedAsset/logo.png";
-import { Button } from "antd";
+import { Breadcrumb, Button } from "antd";
+import { HomeOutlined, UserOutlined } from "@ant-design/icons";
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
+  const linkStyle = {
+    color: '#1f2937',
+    fontWeight: 600,
+    fontSize: '18px',
+    display: 'flex',
+    alignItems: 'center',
+    transition: 'all 0.3s ease',
+  };
+
+  const handleMouseEnter = (e) => {
+    e.currentTarget.style.color = '#1f2937';
+  };
+
+  const handleMouseLeave = (e) => {
+    e.currentTarget.style.color = '#1f2937';
+  };
+
   const navLinks = (
-    <>
-      <li className="relative group">
-        <Link
-          to="/"
-          onClick={() => setIsOpen(false)}
-          className="text-gray-800 font-semibold text-lg transition-all duration-300 ease-in-out hover:text-red-400 relative"
-        >
-          Home
-          <span className="absolute bottom-0 left-0 w-0 h-0.5  bg-red-300 transition-all duration-300 group-hover:w-full"></span>
-        </Link>
-      </li>
-      <li className="relative group">
-        <Link
-          to="/blog"
-          onClick={() => setIsOpen(false)}
-          className="text-gray-800 font-semibold text-lg transition-all duration-300 ease-in-out hover:text-red-400 relative"
-        >
-          Blog
-          <span className="absolute bottom-0 left-0 w-0 h-0.5  bg-red-300 transition-all duration-300 group-hover:w-full"></span>
-        </Link>
-      </li>
-      <li className="relative group">
-        <Link
-          to={isAuthenticated ? "/customer/book" : "/book"}
-          onClick={() => setIsOpen(false)}
-          className="text-gray-800 font-semibold text-lg transition-all duration-300 ease-in-out hover:text-red-400 relative"
-        >
-          Services
-          <span className="absolute bottom-0 left-0 w-0 h-0.5  bg-red-300 transition-all duration-300 group-hover:w-full"></span>
-        </Link>
-      </li>
-      <li className="relative group">
-        <Link
-          to={isAuthenticated ? "/customer/about" : "/about"}
-          onClick={() => setIsOpen(false)}
-          className="text-gray-800 font-semibold text-lg transition-all duration-300 ease-in-out hover:text-red-400 relative"
-        >
-          About Us
-          <span className="absolute bottom-0 left-0 w-0 h-0.5  bg-red-300 transition-all duration-300 group-hover:w-full"></span>
-        </Link>
-      </li>
-    </>
+    <li style={{ listStyle: 'none' }}>
+      <Breadcrumb
+        items={[
+          {
+            title: (
+              <Link 
+                to="/" 
+                onClick={() => setIsOpen(false)} 
+                style={linkStyle}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                <HomeOutlined style={{ marginRight: '8px' }} />
+                Home
+              </Link>
+            ),
+          },
+          {
+            title: (
+              <Link 
+                to="/blog" 
+                onClick={() => setIsOpen(false)} 
+                style={linkStyle}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                Blog
+              </Link>
+            ),
+          },
+          {
+            title: (
+              <Link
+                to={isAuthenticated ? "/customer/book" : "/book"}
+                onClick={() => setIsOpen(false)}
+                style={linkStyle}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                Services
+              </Link>
+            ),
+          },
+          {
+            title: (
+              <Link
+                to={isAuthenticated ? "/customer/about" : "/about"}
+                onClick={() => setIsOpen(false)}
+                style={linkStyle}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                About Us
+              </Link>
+            ),
+          },
+        ]}
+      />
+    </li>
   );
 
   return (

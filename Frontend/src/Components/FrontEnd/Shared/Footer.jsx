@@ -10,7 +10,7 @@ const Footer = () => {
 
           {/* Copyright / Info */}
           <div className="text-xs sm:text-sm text-gray-400 text-right flex-1 min-w-0 footer-info">
-            <p className="">©2025 PLACEHOLDER. All rights reserved.</p>
+            <p className="">©2025 Flower Beauty Salon. All rights reserved.</p>
             <p className="mt-1">No part of this website may be reproduced without permission.</p>
           </div>
         </div>
