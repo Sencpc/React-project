@@ -15,7 +15,10 @@ const useBackendHealth = () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
-        const response = await fetch(`${API_BASE_URL}/health`, {
+        // Use absolute URL if API_BASE_URL is set, otherwise use relative path
+        const healthUrl = API_BASE_URL ? `${API_BASE_URL}/health` : "/health";
+
+        const response = await fetch(healthUrl, {
           method: "GET",
           signal: controller.signal,
           headers: {
