@@ -99,7 +99,15 @@ const Login = () => {
           body: JSON.stringify({ email, password }),
         });
 
-        const data = await response.json();
+        let data = {};
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            data = await response.json();
+          } catch (parseError) {
+            data = {};
+          }
+        }
 
         if (!response.ok) {
           throw new Error(data?.message || "Failed to login");
