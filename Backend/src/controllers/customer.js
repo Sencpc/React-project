@@ -4,6 +4,7 @@ import midtransClient from "midtrans-client";
 import { randomUUID } from "node:crypto";
 import { isValidObjectId } from "mongoose";
 import Booking from "../models/Booking.js";
+import Transaction from "../models/Transaction.js";
 import User from "../models/User.js";
 import Service from "../models/Service.js";
 import Coupon from "../models/Coupon.js";
@@ -580,6 +581,280 @@ const buildOrderId = (userId) => {
     .toUpperCase();
   const raw = `ORD-${userSegment}-${timestampSegment}-${randomSegment}`;
   return raw.slice(0, 50);
+};
+
+const getAppBaseUrl = (req) => {
+  const configuredBaseUrl =
+    process.env.APP_BASE_URL ||
+    process.env.FRONTEND_BASE_URL ||
+    process.env.WEB_APP_BASE_URL ||
+    process.env.PUBLIC_WEB_URL;
+
+  const originHeader = req?.headers?.origin;
+  const refererHeader = req?.headers?.referer;
+
+  const candidate = configuredBaseUrl || originHeader || refererHeader;
+
+  if (!candidate || typeof candidate !== "string") {
+    return null;
+  }
+
+  try {
+    const url = new URL(candidate);
+    return url.origin;
+  } catch (error) {
+    console.warn("Invalid app base URL for Midtrans callbacks", {
+      candidate,
+      message: error?.message,
+    });
+    return null;
+  }
+};
+
+const buildAppUrl = (req, path) => {
+  if (!path) {
+    return null;
+  }
+
+  const base = getAppBaseUrl(req);
+  if (!base) {
+    return null;
+  }
+
+  const normalisedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalisedPath}`;
+};
+
+const buildSnapCallbacks = (req) => {
+  const callbacks = {
+    finish: buildAppUrl(req, "/customer/history?payment=success"),
+    pending: buildAppUrl(req, "/customer/history?payment=pending"),
+    error: buildAppUrl(req, "/customer/cart?payment=error"),
+  };
+
+  Object.keys(callbacks).forEach((key) => {
+    if (!callbacks[key]) {
+      delete callbacks[key];
+    }
+  });
+
+  return callbacks;
+};
+
+const parseClockToMinutes = (value) => {
+  if (!value || typeof value !== "string") {
+    return null;
+  }
+  const match = value.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) {
+    return null;
+  }
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return null;
+  }
+  return hours * 60 + minutes;
+};
+
+const resolveScheduleFromCart = (cartItems, totalDurationMinutes) => {
+  const candidate = cartItems.find((item) => item?.schedule?.date) || null;
+  const date = candidate?.schedule?.date || toDateKey(new Date());
+
+  const scheduleMinutes =
+    candidate?.schedule?.startMinutes ??
+    parseClockToMinutes(candidate?.schedule?.startTime);
+
+  const startMinutes = Number.isFinite(scheduleMinutes)
+    ? Math.max(0, Math.round(scheduleMinutes))
+    : WORK_START_MINUTE;
+
+  const duration = Number.isFinite(totalDurationMinutes)
+    ? Math.max(0, Math.round(totalDurationMinutes))
+    : 0;
+
+  const base = new Date(`${date}T00:00:00Z`);
+  const startTime = new Date(base.getTime() + startMinutes * 60 * 1000);
+  const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+
+  return {
+    date,
+    startMinutes,
+    endMinutes: startMinutes + duration,
+    startTime,
+    endTime,
+  };
+};
+
+const buildBookedServicesFromCart = (cartItems) => {
+  const services = [];
+
+  cartItems.forEach((item) => {
+    if (item.cartMain) {
+      services.push({
+        service: isValidObjectId(item.cartMain.serviceId)
+          ? item.cartMain.serviceId
+          : undefined,
+        name: item.cartMain.name,
+        price: item.cartMain.price,
+        durationMinutes: item.cartMain.durationMinutes,
+      });
+    }
+
+    item.cartExtras.forEach((extra) => {
+      services.push({
+        service: isValidObjectId(extra.serviceId) ? extra.serviceId : undefined,
+        name: extra.name,
+        price: extra.price,
+        durationMinutes: extra.durationMinutes,
+      });
+    });
+  });
+
+  return services;
+};
+
+const normaliseMidtransStatus = (status) => {
+  if (!status) return "pending";
+  const lowered = status.toString().toLowerCase();
+  switch (lowered) {
+    case "settlement":
+    case "capture":
+    case "paid":
+    case "success":
+      return "paid";
+    case "cancel":
+    case "cancelled":
+      return "cancelled";
+    case "failure":
+    case "failed":
+    case "deny":
+      return "failed";
+    case "expire":
+    case "expired":
+      return "expired";
+    default:
+      return "pending";
+  }
+};
+
+const updateBookingPaymentFromTransaction = async (booking, transaction) => {
+  if (!booking || !transaction) return;
+
+  booking.payment ??= {};
+  booking.payment.method = transaction.method || "midtrans";
+  booking.payment.totalAmount =
+    transaction.amount ?? booking.payment.totalAmount;
+  booking.payment.invoiceNo =
+    transaction.invoice?.number || booking.payment.invoiceNo;
+  booking.payment.reference =
+    transaction.reference || transaction.orderId || booking.payment.reference;
+
+  switch (transaction.status) {
+    case "paid":
+      booking.payment.status = "paid";
+      break;
+    case "cancelled":
+    case "failed":
+    case "voided":
+      booking.payment.status = "refunded";
+      break;
+    case "expired":
+    case "overdue":
+      booking.payment.status = "unpaid";
+      break;
+    default:
+      booking.payment.status = "pending";
+      break;
+  }
+
+  await booking.save();
+};
+
+const upsertBookingAndTransaction = async ({
+  user,
+  orderId,
+  summary,
+  cartItems,
+  snapTransaction,
+}) => {
+  if (!user?._id) {
+    throw createHttpError(401, "Sesi tidak valid");
+  }
+
+  let booking = await Booking.findOne({ "payment.reference": orderId });
+
+  const { date, startTime, endTime } = resolveScheduleFromCart(
+    cartItems,
+    summary.totalDuration
+  );
+
+  const services = buildBookedServicesFromCart(cartItems);
+
+  if (!booking) {
+    booking = new Booking({
+      user: user._id,
+      services,
+      startTime,
+      endTime,
+      status: "pending",
+      slot: { date },
+      payment: {
+        method: "midtrans",
+        status: "pending",
+        totalAmount: summary.total,
+        reference: orderId,
+      },
+      notes: undefined,
+    });
+
+    await booking.save();
+  }
+
+  let transaction = await Transaction.findOne({ orderId });
+
+  if (!transaction) {
+    transaction = new Transaction({
+      booking: booking._id,
+      user: user._id,
+      amount: summary.total,
+      method: "midtrans",
+      status: "pending",
+      reference: orderId,
+      orderId,
+      bookedServices: services.map((svc) => ({
+        serviceId: svc.service,
+        name: svc.name,
+        price: svc.price,
+        durationMinutes: svc.durationMinutes,
+      })),
+      metadata: {
+        couponCode: summary.coupon?.code ?? null,
+        subtotal: summary.subtotal,
+        discountAmount: summary.discountAmount,
+      },
+    });
+  }
+
+  if (snapTransaction) {
+    transaction.orderId = snapTransaction.order_id ?? transaction.orderId;
+    transaction.reference = snapTransaction.order_id ?? transaction.reference;
+    transaction.paymentType =
+      snapTransaction.payment_type ?? transaction.paymentType;
+    transaction.grossAmount =
+      snapTransaction.gross_amount !== undefined
+        ? Number(snapTransaction.gross_amount)
+        : transaction.grossAmount;
+    transaction.midtransResponse = snapTransaction;
+    transaction.status = normaliseMidtransStatus(
+      snapTransaction.transaction_status
+    );
+  }
+
+  await transaction.save();
+  await updateBookingPaymentFromTransaction(booking, transaction);
+
+  return { booking, transaction };
 };
 
 const buildCustomerDetails = (user) => {
@@ -1374,6 +1649,8 @@ router.post("/checkout/snap-token", async (req, res) => {
       summary.coupon
     );
 
+    const callbacks = buildSnapCallbacks(req);
+
     const parameter = {
       transaction_details: {
         order_id: orderId,
@@ -1386,11 +1663,23 @@ router.post("/checkout/snap-token", async (req, res) => {
       custom_field2: summary.coupon?.code ?? undefined,
     };
 
+    if (Object.keys(callbacks).length) {
+      parameter.callbacks = callbacks;
+    }
+
     const transaction = await snap.createTransaction(parameter);
 
     if (!transaction?.token) {
       throw createHttpError(502, "Midtrans tidak mengembalikan token");
     }
+
+    await upsertBookingAndTransaction({
+      user: req.user,
+      orderId,
+      summary,
+      cartItems: summary.items,
+      snapTransaction: transaction,
+    });
 
     res.json({
       token: transaction.token,

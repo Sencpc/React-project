@@ -15,9 +15,12 @@ import {
 } from "../../../store/cartSlice";
 
 const MIDTRANS_CLIENT_KEY = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || "";
+// Choose Snap URL based on key unless explicitly provided.
 const MIDTRANS_SNAP_URL =
   import.meta.env.VITE_MIDTRANS_SNAP_URL ||
-  "https://app.sandbox.midtrans.com/snap/snap.js";
+  (MIDTRANS_CLIENT_KEY.startsWith("SB-")
+    ? "https://app.sandbox.midtrans.com/snap/snap.js"
+    : "https://app.midtrans.com/snap/snap.js");
 
 const SNAP_EMBED_CONTAINER_ID = "midtrans-snap-container";
 
@@ -127,7 +130,6 @@ const CustomerCart = () => {
   const [snapReady, setSnapReady] = useState(
     () => typeof window !== "undefined" && Boolean(window.snap)
   );
-  const [snapError, setSnapError] = useState("");
   const [snapModalVisible, setSnapModalVisible] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState(null);
   const [retryPrompt, setRetryPrompt] = useState(null);
@@ -300,7 +302,6 @@ const CustomerCart = () => {
     }
 
     if (!MIDTRANS_CLIENT_KEY) {
-      setSnapError("Client key Midtrans belum dikonfigurasi.");
       return;
     }
 
@@ -312,16 +313,11 @@ const CustomerCart = () => {
     const handleLoad = () => {
       if (!cancelled) {
         setSnapReady(true);
-        setSnapError("");
       }
     };
 
     const handleError = () => {
-      if (!cancelled) {
-        setSnapError(
-          "Gagal memuat Midtrans Snap. Segarkan halaman dan coba lagi."
-        );
-      }
+      /* ignore load error notice to avoid noisy UI; snap fallback still works */
     };
 
     if (existing) {
@@ -821,12 +817,6 @@ const CustomerCart = () => {
                     </p>
                   ) : null}
                 </div>
-
-                {snapError ? (
-                  <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                    {snapError}
-                  </p>
-                ) : null}
 
                 {checkoutMessage ? (
                   <p

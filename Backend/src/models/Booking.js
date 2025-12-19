@@ -40,7 +40,15 @@ const BookingSchema = new mongoose.Schema(
     payment: {
       method: {
         type: String,
-        enum: ["cash", "bank-transfer", "e-wallet", "credit-card"],
+        enum: [
+          "cash",
+          "bank-transfer",
+          "e-wallet",
+          "credit-card",
+          "midtrans",
+          "payment-link",
+          "virtual-account",
+        ],
         default: "e-wallet",
       },
       dpAmount: { type: Number, default: 0 },

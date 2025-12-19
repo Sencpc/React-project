@@ -4,23 +4,157 @@ This backend provides MongoDB data models and an Express server to support the s
 
 ## Prerequisites
 
-- Node.js 18+
-- MongoDB local (or Docker) or MongoDB Atlas
+- **Node.js 18+** ([Download](https://nodejs.org/))
+- **MongoDB** (Local installation, Docker, or MongoDB Atlas cloud)
+- **Git** (to clone the repository)
+
+## Quick Start (Clone and Run)
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd React-project
+```
+
+### 2. Install Dependencies (Backend and Frontend)
+
+**Option A: Install separately**
+
+```bash
+# Backend
+cd Backend
+npm install
+
+# Frontend (in a new terminal)
+cd Frontend
+npm install
+```
+
+**Option B: Install from project root** (if npm scripts are configured)
+
+```bash
+npm run install:backend
+npm run install:frontend
+```
+
+### 3. Set Up MongoDB
+
+**Option A: Local MongoDB**
+
+- Install and start MongoDB on your machine (e.g., `mongod` on Windows/Mac/Linux).
+- MongoDB will be available at `mongodb://localhost:27017/flower_beauty_salon` by default.
+
+**Option B: Docker**
+
+```bash
+cd Backend
+docker compose -f docker-compose.yml up -d
+```
+
+**Option C: MongoDB Atlas (Cloud)**
+
+- Create a free MongoDB Atlas account at https://www.mongodb.com/cloud/atlas
+- Get your connection string and use it in `.env`
+
+### 4. Configure Environment Variables
+
+Create `Backend/.env` with the required values below. Copy the template and fill in your actual keys:
+
+```dotenv
+# Database
+MONGODB_URI=mongodb://localhost:27017/flower_beauty_salon
+
+# JWT & CORS
+JWT_SECRET=your_secret_key_here
+CORS_ORIGIN=http://localhost:5173
+
+# Server
+PORT=4000
+
+# Midtrans (Payment)
+MIDTRANS_MERCHANT_ID=your_midtrans_merchant_id
+MIDTRANS_SERVER_KEY=your_midtrans_server_key
+MIDTRANS_CLIENT_KEY=your_midtrans_client_key
+MIDTRANS_IS_PRODUCTION=false
+
+# Twilio (WhatsApp & SMS - optional)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_SERVICE_SID=your_twilio_service_sid
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+WHATSAPP_TEST_MODE=true
+
+# Booking Reminders
+BOOKING_REMINDER_CRON=0 9 * * *
+BOOKING_REMINDER_TZ=Asia/Jakarta
+
+# App URL (for payment callbacks)
+APP_BASE_URL=http://localhost:5173
+```
+
+Get your **Midtrans keys**:
+
+- Go to https://dashboard.midtrans.com
+- Use **Sandbox** keys for testing (keys starting with `SB-`)
+- Switch to **Production** keys when live (keys starting with `Mid-`)
+
+### 5. Seed Initial Data (Optional but Recommended)
+
+```bash
+cd Backend
+npm run seed
+```
+
+This creates sample users, services, and coupon codes for testing.
+
+### 6. Start the Backend
+
+```bash
+cd Backend
+npm run dev
+```
+
+Backend will be running at **http://localhost:4000** ✓
+
+### 7. Start the Frontend (in a new terminal)
+
+Create `Frontend/.env`:
+
+```dotenv
+VITE_API_URL=http://localhost:4000
+VITE_MIDTRANS_CLIENT_KEY=your_midtrans_client_key
+```
+
+Then run:
+
+```bash
+cd Frontend
+npm run dev
+```
+
+Frontend will be running at **http://localhost:5173** ✓
+
+### 8. Access the Application
+
+Open your browser and go to:
+
+- **App**: http://localhost:5173
+- **Backend Health**: http://localhost:4000/health
+
+## Login Credentials (After Seeding)
+
+**Admin**
+
+- Email: `admin@example.com`
+- Password: `Admin@123`
+
+**Customer**
+
+- Email: `andi@example.com`
+- Password: `Customer@123`
 
 ## Setup
-
-1. Configure environment variables:
-   - Create `Backend/.env` and set required values (see below).
-2. Install dependencies:
-   - From the `Backend` folder run `npm install` (or from project root use `npm run install:backend`).
-3. Run MongoDB:
-   - Local MongoDB, or with Docker: `docker compose -f Backend/docker-compose.yml up -d`.
-4. Seed initial data (optional):
-   - `npm run seed`
-5. Start dev server:
-   - `npm run dev`
-
-Server defaults to http://localhost:4000 and exposes `/health`.
 
 ### Midtrans Snap Payments
 
@@ -29,6 +163,8 @@ Configure the following variables in `Backend/.env` to enable Midtrans Snap toke
 - `MIDTRANS_SERVER_KEY` – required server key from the Midtrans dashboard.
 - `MIDTRANS_CLIENT_KEY` – client key used by the frontend Snap script.
 - `MIDTRANS_IS_PRODUCTION` – set to `true` in production to hit the live Snap endpoint (defaults to sandbox).
+- `APP_BASE_URL` (or `FRONTEND_BASE_URL`) – the public URL of your web app (e.g. `https://app.yoursalon.com`). Used to send Midtrans finish/pending/error callbacks back to your site instead of the default `example.com` values.
+- Configure Midtrans HTTP Notification to POST to `/api/transactions/midtrans-notify` on your public backend URL. The server verifies the Midtrans signature and updates the booking/transaction status.
 
 New customer-facing routes:
 
@@ -36,6 +172,17 @@ New customer-facing routes:
 - `POST /api/customer/checkout/snap-token` – builds a Midtrans Snap transaction token for the current cart (after applying any coupon).
 
 The `/checkout/snap-token` route requires a populated cart and returns both the Snap token and `redirectUrl` so the frontend can either open `window.snap.pay` or fall back to the hosted payment page.
+
+#### Testing with Alfamart (Sandbox)
+
+To test Alfamart payment in sandbox mode:
+
+1. In the frontend, add items to cart and click **Bayar dengan Midtrans**.
+2. In the Snap modal, select **Alfamart** as the payment method.
+3. Copy the displayed payment code.
+4. Open https://simulator.sandbox.midtrans.com/alfamart/payment in a new tab.
+5. Paste the payment code and click **Pay**.
+6. Return to the app and check `/customer/history` to see the booking status update to **Paid** (Midtrans sends a notification to `/api/transactions/midtrans-notify`).
 
 ## WhatsApp Booking Reminders
 

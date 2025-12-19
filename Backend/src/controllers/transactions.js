@@ -1,4 +1,5 @@
 import express from "express";
+import { createHash } from "node:crypto";
 import { isValidObjectId } from "mongoose";
 import Transaction from "../models/Transaction.js";
 import Booking from "../models/Booking.js";
@@ -10,9 +11,6 @@ import {
 } from "../utils/serializers.js";
 
 const router = express.Router();
-
-router.use(authenticate);
-router.use(authorizeRoles("admin"));
 
 const parseDate = (value) => {
   if (!value) return undefined;
@@ -184,6 +182,95 @@ const updateBookingPayment = async (booking, transaction) => {
 
   await booking.save();
 };
+
+// Midtrans HTTP notification (webhook)
+router.post("/midtrans-notify", async (req, res) => {
+  try {
+    const payload = req.body ?? {};
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+
+    if (!serverKey) {
+      return res.status(500).json({ message: "Midtrans server key missing" });
+    }
+
+    const {
+      order_id: orderId,
+      status_code: statusCode,
+      gross_amount: grossAmount,
+      signature_key: signatureKey,
+    } = payload;
+
+    if (!orderId || !statusCode || !grossAmount || !signatureKey) {
+      return res
+        .status(400)
+        .json({ message: "Invalid Midtrans notification payload" });
+    }
+
+    const rawSignature = `${orderId}${statusCode}${grossAmount}${serverKey}`;
+    const expectedSignature = createHash("sha512")
+      .update(rawSignature)
+      .digest("hex");
+
+    if (expectedSignature !== signatureKey) {
+      return res.status(401).json({ message: "Invalid Midtrans signature" });
+    }
+
+    let transaction = await Transaction.findOne({ orderId });
+    let booking = null;
+
+    if (!transaction) {
+      booking = await Booking.findOne({ "payment.reference": orderId });
+      if (booking) {
+        transaction = new Transaction({
+          booking: booking._id,
+          user: booking.user,
+          amount: Number(grossAmount) || 0,
+          method: "midtrans",
+          status: "pending",
+          orderId,
+          reference: orderId,
+        });
+      }
+    }
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const applied = applyInvoiceDetails(transaction, payload);
+
+    let status = normaliseStatus(payload.transaction_status) || applied.status;
+    if (
+      payload.transaction_status === "capture" &&
+      payload.fraud_status === "challenge"
+    ) {
+      status = "pending";
+    }
+
+    transaction.status = status;
+    transaction.midtransResponse = payload;
+
+    await transaction.save();
+
+    if (!booking) {
+      booking = await Booking.findById(transaction.booking);
+    }
+
+    if (booking) {
+      await updateBookingPayment(booking, transaction);
+    }
+
+    res.json({ received: true, orderId, status: transaction.status });
+  } catch (error) {
+    console.error("Failed to process Midtrans notification", error);
+    res
+      .status(500)
+      .json({ message: "Failed to process Midtrans notification" });
+  }
+});
+
+router.use(authenticate);
+router.use(authorizeRoles("admin"));
 
 const buildFilter = (query) => {
   const filter = {};
