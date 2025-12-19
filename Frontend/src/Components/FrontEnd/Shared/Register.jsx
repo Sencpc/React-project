@@ -113,7 +113,15 @@ const Register = () => {
         }),
       });
 
-      const data = await response.json();
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          data = {};
+        }
+      }
 
       if (!response.ok) {
         setServerError(data.message || "Failed to create account.");

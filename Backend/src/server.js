@@ -46,6 +46,27 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
 
+// Debug middleware - log all requests
+app.use((req, res, next) => {
+  console.log(
+    `[${req.method}] ${req.path} - Query:`,
+    req.query,
+    "Body:",
+    req.body
+  );
+  next();
+});
+
+// 404 handler
+app.use((req, res) => {
+  console.log(`404 - Route not found: [${req.method}] ${req.path}`);
+  res.status(404).json({
+    message: "Route not found",
+    path: req.path,
+    method: req.method,
+  });
+});
+
 // Connect DB and start server
 const start = async () => {
   try {
