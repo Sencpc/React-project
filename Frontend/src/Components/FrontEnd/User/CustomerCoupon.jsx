@@ -1,5 +1,18 @@
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
 import CouponIcon from "../../../assets/SharedAsset/Coupon.png";
+import {
+  Badge,
+  Card,
+  Col,
+  Descriptions,
+  Empty,
+  List,
+  Progress,
+  Row,
+  Space,
+  Tag,
+  Typography,
+} from "antd";
 
 const CustomerCoupon = () => {
   const coupons = [
@@ -62,141 +75,100 @@ const CustomerCoupon = () => {
 
   return (
     <CustomerDashboardLayout title="My Coupons">
-      <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Typography.Title level={3} style={{ margin: 0 }}>
           Redeemed Coupons
-        </h2>
+        </Typography.Title>
 
-        <div className="space-y-6">
-          {redeemedCoupons.length === 0 && (
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center text-gray-600">
-              You have not redeemed any coupons yet.
-            </div>
-          )}
+        {redeemedCoupons.length === 0 ? (
+          <Card>
+            <Empty description="You have not redeemed any coupons yet." />
+          </Card>
+        ) : (
+          <List
+            itemLayout="vertical"
+            dataSource={redeemedCoupons}
+            renderItem={(coupon) => {
+              const usageLimit = coupon.usageLimit ?? null;
+              const usedCount = coupon.usedCount ?? 0;
+              const isFullyUsed =
+                typeof usageLimit === "number" && usageLimit >= 0
+                  ? usedCount >= usageLimit
+                  : false;
 
-          {redeemedCoupons.map((coupon) => {
-            const usageLimit = coupon.usageLimit ?? null;
-            const usedCount = coupon.usedCount ?? 0;
-            const isFullyUsed =
-              typeof usageLimit === "number" && usageLimit >= 0
-                ? usedCount >= usageLimit
-                : false;
-            const remainingUses =
-              typeof usageLimit === "number" && usageLimit >= 0
-                ? Math.max(usageLimit - usedCount, 0)
-                : null;
+              const percent =
+                typeof usageLimit === "number" && usageLimit > 0
+                  ? Math.min((usedCount / usageLimit) * 100, 100)
+                  : 0;
 
-            return (
-              <div key={coupon.id} className="relative">
-                {/* USED Badge - positioned absolutely at top right */}
-                {isFullyUsed && (
-                  <div className="absolute top-4 right-4 z-10">
-                    <div className="bg-red-500 text-white font-bold px-6 py-2 rounded-full shadow-lg transform rotate-12 flex items-center gap-2">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M5 13l4 4L19 7"
-                        ></path>
-                      </svg>
-                      USED
-                    </div>
-                  </div>
-                )}
-
-                {/* Coupon Card with notch effect */}
-                <div
-                  className={`bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${
-                    isFullyUsed ? "opacity-60" : ""
-                  }`}
-                >
-                  <div className="flex items-stretch">
-                    {/* Left side - Icon */}
-                    <div className="w-64 flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 relative">
+              const content = (
+                <Card>
+                  <Row gutter={[16, 16]} align="middle">
+                    <Col xs={24} md={6}>
                       <img
                         src={CouponIcon}
                         alt="Coupon Icon"
-                        className="w-52 h-52 object-contain"
+                        style={{ width: "100%", maxWidth: 180 }}
                       />
-                      {/* Notch circles on right side */}
-                      <div className="absolute -right-3 top-1/2 transform -translate-y-1/2 flex flex-col gap-2">
-                        <div className="w-6 h-6 bg-amber-100 rounded-full border-2 border-amber-200"></div>
-                        <div className="w-6 h-6 bg-amber-100 rounded-full border-2 border-amber-200"></div>
-                      </div>
-                    </div>
+                    </Col>
+                    <Col xs={24} md={18}>
+                      <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                        <Space wrap>
+                          <Tag color="orange">{coupon.type}</Tag>
+                          {isFullyUsed && <Tag color="red">USED</Tag>}
+                        </Space>
 
-                    {/* Right side - Content */}
-                    <div className="flex-1 p-8 bg-gradient-to-r from-amber-50 to-orange-50">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-bold text-orange-600 bg-white px-4 py-1 rounded-full shadow-sm">
-                          {coupon.type}
-                        </span>
-                      </div>
-
-                      <div className="mb-4">
-                        <h3 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600 mb-3">
+                        <Typography.Title level={2} style={{ margin: 0 }}>
                           {coupon.discount}
-                        </h3>
-                        <p className="text-gray-700 text-base leading-relaxed font-medium">
+                        </Typography.Title>
+                        <Typography.Paragraph type="secondary" style={{ marginBottom: 8 }}>
                           {coupon.description}
-                        </p>
-                      </div>
+                        </Typography.Paragraph>
 
-                      <div className="border-t-2 border-dashed border-gray-300 pt-4 mt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1 font-semibold">
-                              Coupon Code:
-                            </p>
-                            <p className="text-xl font-bold text-gray-900 font-mono tracking-wider">
-                              {coupon.code}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500 mb-1 font-semibold">
-                              Valid Until:
-                            </p>
-                            <p className="text-base font-bold text-gray-800">
-                              {coupon.validUntil}
-                            </p>
-                          </div>
-                        </div>
+                        <Descriptions size="small" column={2}>
+                          <Descriptions.Item label="Coupon Code">
+                            <Typography.Text code>{coupon.code}</Typography.Text>
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Valid Until">
+                            {coupon.validUntil}
+                          </Descriptions.Item>
+                        </Descriptions>
+
                         {usageLimit !== null ? (
-                          <div
-                            className={`mt-4 px-4 py-3 rounded-lg font-semibold text-sm ${
-                              isFullyUsed
-                                ? "bg-red-50 text-red-600 border border-red-200"
-                                : "bg-green-50 text-green-700 border border-green-200"
-                            }`}
-                          >
-                            {isFullyUsed
-                              ? "Usage limit reached"
-                              : `${remainingUses} use${
-                                  remainingUses === 1 ? "" : "s"
-                                } remaining (${usedCount}/${usageLimit})`}
-                          </div>
+                          <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                            <Typography.Text type={isFullyUsed ? "danger" : "success"}>
+                              {isFullyUsed
+                                ? `Usage limit reached (${usedCount}/${usageLimit})`
+                                : `${Math.max(usageLimit - usedCount, 0)} use(s) remaining (${usedCount}/${usageLimit})`}
+                            </Typography.Text>
+                            <Progress percent={percent} status={isFullyUsed ? "exception" : "active"} />
+                          </Space>
                         ) : (
-                          <div className="mt-4 px-4 py-3 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-sm">
-                            {`Used ${usedCount} time${
-                              usedCount === 1 ? "" : "s"
-                            } (no usage limit)`}
-                          </div>
+                          <Typography.Text type="secondary">
+                            Used {usedCount} time{usedCount === 1 ? "" : "s"} (no usage limit)
+                          </Typography.Text>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                      </Space>
+                    </Col>
+                  </Row>
+                </Card>
+              );
+
+              return (
+                <List.Item key={coupon.id}>
+                  {isFullyUsed ? (
+                    <Badge.Ribbon text="USED" color="red">
+                      {content}
+                    </Badge.Ribbon>
+                  ) : (
+                    content
+                  )}
+                </List.Item>
+              );
+            }}
+          />
+        )}
+      </Space>
     </CustomerDashboardLayout>
   );
 };

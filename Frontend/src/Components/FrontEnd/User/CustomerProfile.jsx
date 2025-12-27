@@ -2,9 +2,22 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
 import { API_BASE_URL } from "../../../config/env.js";
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Divider,
+  Form,
+  Input,
+  Space,
+  Typography,
+} from "antd";
 
 const CustomerProfile = () => {
   const { user, token, updateUser, initializing } = useAuth();
+  const [profileForm] = Form.useForm();
+  const [passwordForm] = Form.useForm();
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,6 +45,10 @@ const CustomerProfile = () => {
       phone: user?.phone || "",
     });
   }, [user]);
+
+  useEffect(() => {
+    profileForm.setFieldsValue(formData);
+  }, [formData, profileForm]);
 
   useEffect(() => {
     if (initializing || !token) {
@@ -84,18 +101,12 @@ const CustomerProfile = () => {
     return () => controller.abort();
   }, [initializing, token, updateUser]);
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((previous) => ({ ...previous, [name]: value }));
-  };
-
-  const handlePasswordChange = (event) => {
-    const { name, value } = event.target;
-    setPasswordData((previous) => ({ ...previous, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = (values) => {
+    const nextValues = {
+      fullName: values?.fullName ?? formData.fullName,
+      email: values?.email ?? formData.email,
+      phone: values?.phone ?? formData.phone,
+    };
 
     if (!token) {
       setProfileError("You must be logged in to update your profile.");
@@ -103,9 +114,9 @@ const CustomerProfile = () => {
       return;
     }
 
-    const trimmedFullName = formData.fullName.trim();
-    const trimmedEmail = formData.email.trim();
-    const trimmedPhone = formData.phone.trim();
+    const trimmedFullName = (nextValues.fullName || "").trim();
+    const trimmedEmail = (nextValues.email || "").trim();
+    const trimmedPhone = (nextValues.phone || "").trim();
 
     if (!trimmedFullName) {
       setProfileError("Full name is required.");
@@ -178,16 +189,20 @@ const CustomerProfile = () => {
     updateProfile();
   };
 
-  const handlePasswordSubmit = (event) => {
-    event.preventDefault();
+  const handlePasswordSubmit = (values) => {
+    const nextPasswordData = {
+      currentPassword: values?.currentPassword ?? passwordData.currentPassword,
+      newPassword: values?.newPassword ?? passwordData.newPassword,
+      confirmPassword: values?.confirmPassword ?? passwordData.confirmPassword,
+    };
 
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
+    if (nextPasswordData.newPassword !== nextPasswordData.confirmPassword) {
       setPasswordError("New password and confirm password do not match.");
       setPasswordSuccess("");
       return;
     }
 
-    if (passwordData.newPassword.length < 8) {
+    if ((nextPasswordData.newPassword || "").length < 8) {
       setPasswordError("Password must be at least 8 characters long.");
       setPasswordSuccess("");
       return;
@@ -214,8 +229,8 @@ const CustomerProfile = () => {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              currentPassword: passwordData.currentPassword,
-              newPassword: passwordData.newPassword,
+              currentPassword: nextPasswordData.currentPassword,
+              newPassword: nextPasswordData.newPassword,
             }),
           }
         );
@@ -231,6 +246,7 @@ const CustomerProfile = () => {
           newPassword: "",
           confirmPassword: "",
         });
+        passwordForm.resetFields();
         setIsEditingPassword(false);
       } catch (error) {
         console.error("Failed to update password", error);
@@ -249,6 +265,7 @@ const CustomerProfile = () => {
       email: user?.email || "",
       phone: user?.phone || "",
     });
+    profileForm.resetFields();
     setIsEditing(false);
     setProfileError("");
     setProfileSuccess("");
@@ -256,289 +273,231 @@ const CustomerProfile = () => {
 
   return (
     <CustomerDashboardLayout title="Profile">
-      <div className="p-6">
-        <div className="max-w-3xl mx-auto">
+      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {profileSuccess && (
-            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-              {profileSuccess}
-            </div>
+            <Alert type="success" showIcon message={profileSuccess} />
           )}
           {profileError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {profileError}
-            </div>
+            <Alert type="error" showIcon message={profileError} />
           )}
           {isProfileLoading && !profileError && (
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-              Loading latest profile information...
-            </div>
+            <Alert
+              type="info"
+              showIcon
+              message="Loading latest profile information..."
+            />
           )}
 
-          {/* Profile Header */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-semibold text-gray-900">
-                My Profile
-              </h3>
-              {!isEditing && (
-                <button
+          <Card
+            title={<Typography.Title level={3} style={{ margin: 0 }}>My Profile</Typography.Title>}
+            extra={
+              !isEditing ? (
+                <Button
+                  type="primary"
                   onClick={() => {
                     setIsEditing(true);
                     setProfileSuccess("");
                     setProfileError("");
                   }}
                   disabled={isProfileLoading}
-                  className="px-4 py-2 bg-red-400 text-white text-sm font-medium rounded-lg transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Edit Profile
-                </button>
-              )}
-            </div>
+                </Button>
+              ) : null
+            }
+          >
+            {!isEditing ? (
+              <Descriptions column={1} size="middle">
+                <Descriptions.Item label="Full Name">
+                  {formData.fullName || "Not set"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Email Address">
+                  {formData.email || "Not set"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Phone Number">
+                  {formData.phone || "Not set"}
+                </Descriptions.Item>
+              </Descriptions>
+            ) : (
+              <Form
+                form={profileForm}
+                layout="vertical"
+                initialValues={formData}
+                onFinish={handleSubmit}
+                onValuesChange={(_, allValues) => {
+                  setFormData((previous) => ({ ...previous, ...allValues }));
+                }}
+              >
+                <Form.Item
+                  label="Full Name"
+                  name="fullName"
+                  rules={[{ required: true, message: "Full name is required." }]}
+                >
+                  <Input disabled={isProfileSaving} placeholder="Enter your full name" />
+                </Form.Item>
 
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-6">
-                {/* Full Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      disabled={isProfileSaving}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
-                      placeholder="Enter your full name"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
-                      {formData.fullName || "Not set"}
-                    </div>
-                  )}
-                </div>
+                <Form.Item
+                  label="Email Address"
+                  name="email"
+                  rules={[
+                    { required: true, message: "Email is required." },
+                    { type: "email", message: "Please enter a valid email address." },
+                  ]}
+                >
+                  <Input disabled={isProfileSaving} placeholder="Enter your email" />
+                </Form.Item>
 
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      disabled={isProfileSaving}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
-                      placeholder="Enter your email"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
-                      {formData.email || "Not set"}
-                    </div>
-                  )}
-                </div>
+                <Form.Item
+                  label="Phone Number"
+                  name="phone"
+                  rules={[{ required: true, message: "Phone number is required." }]}
+                >
+                  <Input disabled={isProfileSaving} placeholder="Enter your phone number" />
+                </Form.Item>
 
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      disabled={isProfileSaving}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
-                      placeholder="Enter your phone number"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
-                      {formData.phone || "Not set"}
-                    </div>
-                  )}
-                </div>
+                <Space>
+                  <Button onClick={handleCancel} disabled={isProfileSaving}>
+                    Cancel
+                  </Button>
+                  <Button type="primary" htmlType="submit" loading={isProfileSaving}>
+                    Save Changes
+                  </Button>
+                </Space>
+              </Form>
+            )}
+          </Card>
 
-                {/* Action Buttons */}
-                {isEditing && (
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={handleCancel}
-                      className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isProfileSaving}
-                      className="flex-1 py-3 bg-red-400 text-white font-medium rounded-lg hover:bg-red-500 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {isProfileSaving ? "Saving..." : "Save Changes"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </form>
-          </div>
-
-          {/* Change Password Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="text-lg font-semibold text-gray-900">
-                Change Password
-              </h4>
-              {!isEditingPassword && (
-                <button
+          <Card
+            title={<Typography.Title level={4} style={{ margin: 0 }}>Change Password</Typography.Title>}
+            extra={
+              !isEditingPassword ? (
+                <Button
+                  type="primary"
                   onClick={() => {
                     setIsEditingPassword(true);
                     setPasswordError("");
                     setPasswordSuccess("");
                   }}
-                  className="px-4 py-2 bg-red-400 text-white text-sm font-medium rounded-lg hover:bg-red-500 transition-colors"
                 >
                   Change Password
-                </button>
+                </Button>
+              ) : null
+            }
+          >
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              {passwordSuccess && (
+                <Alert type="success" showIcon message={passwordSuccess} />
               )}
-            </div>
+              {passwordError && (
+                <Alert type="error" showIcon message={passwordError} />
+              )}
 
-            {passwordSuccess && (
-              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-                {passwordSuccess}
-              </div>
-            )}
-            {passwordError && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {passwordError}
-              </div>
-            )}
-
-            {isEditingPassword ? (
-              <form onSubmit={handlePasswordSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <label
-                      htmlFor="currentPassword"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Current Password
-                    </label>
-                    <input
-                      type="password"
-                      id="currentPassword"
-                      name="currentPassword"
-                      value={passwordData.currentPassword}
-                      onChange={handlePasswordChange}
-                      required
+              {isEditingPassword ? (
+                <Form
+                  form={passwordForm}
+                  layout="vertical"
+                  initialValues={passwordData}
+                  onFinish={handlePasswordSubmit}
+                  onValuesChange={(_, allValues) => {
+                    setPasswordData((previous) => ({ ...previous, ...allValues }));
+                  }}
+                >
+                  <Form.Item
+                    label="Current Password"
+                    name="currentPassword"
+                    rules={[{ required: true, message: "Current password is required." }]}
+                  >
+                    <Input.Password
                       disabled={isPasswordSaving}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
                       placeholder="Enter current password"
                     />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="newPassword"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      id="newPassword"
-                      name="newPassword"
-                      value={passwordData.newPassword}
-                      onChange={handlePasswordChange}
-                      required
-                      minLength="8"
+                  </Form.Item>
+                  <Form.Item
+                    label="New Password"
+                    name="newPassword"
+                    rules={[
+                      { required: true, message: "New password is required." },
+                      { min: 8, message: "Password must be at least 8 characters long." },
+                    ]}
+                  >
+                    <Input.Password
                       disabled={isPasswordSaving}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
                       placeholder="Enter new password (min. 8 characters)"
                     />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="confirmNewPassword"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      id="confirmNewPassword"
-                      name="confirmPassword"
-                      value={passwordData.confirmPassword}
-                      onChange={handlePasswordChange}
-                      required
-                      minLength="8"
+                  </Form.Item>
+                  <Form.Item
+                    label="Confirm New Password"
+                    name="confirmPassword"
+                    dependencies={["newPassword"]}
+                    rules={[
+                      { required: true, message: "Please confirm your new password." },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue("newPassword") === value) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject(
+                            new Error("New password and confirm password do not match.")
+                          );
+                        },
+                      }),
+                    ]}
+                  >
+                    <Input.Password
                       disabled={isPasswordSaving}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
                       placeholder="Confirm new password"
                     />
-                  </div>
-                </div>
+                  </Form.Item>
 
-                <div className="flex gap-3 pt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditingPassword(false);
-                      setPasswordData({
-                        currentPassword: "",
-                        newPassword: "",
-                        confirmPassword: "",
-                      });
-                      setPasswordError("");
-                      setPasswordSuccess("");
-                    }}
-                    className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isPasswordSaving}
-                    className="flex-1 py-3 bg-red-400 text-white font-medium rounded-lg hover:bg-red-500 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isPasswordSaving ? "Updating..." : "Update Password"}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <p className="text-gray-600">
-                Keep your account secure by regularly updating your password.
-              </p>
-            )}
-          </div>
+                  <Space>
+                    <Button
+                      onClick={() => {
+                        setIsEditingPassword(false);
+                        setPasswordData({
+                          currentPassword: "",
+                          newPassword: "",
+                          confirmPassword: "",
+                        });
+                        passwordForm.resetFields();
+                        setPasswordError("");
+                        setPasswordSuccess("");
+                      }}
+                      disabled={isPasswordSaving}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={isPasswordSaving}
+                    >
+                      Update Password
+                    </Button>
+                  </Space>
+                </Form>
+              ) : (
+                <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+                  Keep your account secure by regularly updating your password.
+                </Typography.Paragraph>
+              )}
+            </Space>
+          </Card>
 
-          {/* Additional Info */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
-              Account Information
-            </h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600">Account Type</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {user?.role || "Customer"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm text-gray-600">Member Since</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString("id-ID")
-                    : "N/A"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+          <Card title="Account Information">
+            <Descriptions column={1} size="middle">
+              <Descriptions.Item label="Account Type">
+                {user?.role || "Customer"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Member Since">
+                {user?.createdAt
+                  ? new Date(user.createdAt).toLocaleDateString("id-ID")
+                  : "N/A"}
+              </Descriptions.Item>
+            </Descriptions>
+            <Divider style={{ marginBottom: 0 }} />
+          </Card>
+        </Space>
       </div>
     </CustomerDashboardLayout>
   );

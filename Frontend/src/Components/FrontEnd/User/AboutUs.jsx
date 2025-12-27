@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import "../../../App.css";
+import {
+  Card,
+  Col,
+  Descriptions,
+  Image,
+  List,
+  Row,
+  Space,
+  Typography,
+} from "antd";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -106,106 +116,108 @@ const AboutUs = () => {
   }, [settings]);
 
   return (
-    <div style={{
-      display: "flex",
-      gap: 24,
-      alignItems: "flex-start",
-      padding: 24,
-      paddingTop: 100,
-      flexWrap: "wrap",
-      boxSizing: "border-box",
-    }}>
-      <img
-        src={view.logoUrl}
-        alt="Foto Salon"
-        style={{
-        maxWidth: 400,
-        width: "100%",
-        height: "auto",
-        objectFit: "cover",
-        borderRadius: 8,
-        flex: "0 0 auto",}}
-      />
+    <div style={{ paddingTop: 100, paddingLeft: 24, paddingRight: 24 }}>
+      <Row gutter={[24, 24]} align="top">
+        <Col xs={24} md={10} lg={8}>
+          <Card>
+            <Image
+              src={view.logoUrl}
+              alt="Foto Salon"
+              style={{ width: "100%" }}
+            />
+          </Card>
+        </Col>
 
-      <div style={{
-        flex: 1,
-        minWidth: 280,
-        marginTop: 20}} className="info-card">
-        <div className="info-card">
-        <h1 className="sectionTitle">{view.businessName}</h1>
-        <p>{view.description}</p>
-        </div>
-        <div style={{ marginTop: 16 }} className="info-card">
-          <h3 className="sectionTitle">Kontak</h3>
-          <p>
-            Telepon: <span>{view.phone}</span>
-          </p>
-          <p>
-            Email: <span>{view.email}</span>
-          </p>
-          <p>
-            WhatsApp:{" "}
-            <a
-              href={`https://wa.me/${view.phone.replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {view.phone}
-            </a>
-          </p>
-        </div>
+        <Col xs={24} md={14} lg={16}>
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Card>
+              <Typography.Title level={2} style={{ marginTop: 0 }}>
+                {view.businessName}
+              </Typography.Title>
+              <Typography.Paragraph>{view.description}</Typography.Paragraph>
+            </Card>
 
-        <div style={{ marginTop: 16 }} className="info-card">
-          <h3 className="sectionTitle">Lokasi</h3>
-          <p>{view.address}</p>
-          {view.hours.length > 0 ? (
-            <div>
-              <p>Jam buka:</p>
-              <ul>
-                {view.hours.map((item, index) => (
-                  <li key={`${item.day}-${index}`}>
-                    {item.day}: {item.open} - {item.close}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <p>Jam buka: Senin - Sabtu, 09:00 - 20:00</p>
-          )}
-        </div>
+            <Card title="Kontak">
+              <Descriptions column={1} size="middle">
+                <Descriptions.Item label="Telepon">
+                  {view.phone}
+                </Descriptions.Item>
+                <Descriptions.Item label="Email">
+                  {view.email}
+                </Descriptions.Item>
+                <Descriptions.Item label="WhatsApp">
+                  <a
+                    href={`https://wa.me/${view.phone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {view.phone}
+                  </a>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
 
-        <div style={{ marginTop: 16 }} className="info-card">
-          <h3 className="sectionTitle">Sosial Media</h3>
-          <ul style={{ listStyle: "none", paddingLeft: 0, marginTop: 8 }}>
-            <li>
-              Instagram:{" "}
-              <a
-                href={view.instagramUrl || "#"}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {view.instagramHandle}
-              </a>
-            </li>
-            <li>
-              Facebook:{" "}
-              <a
-                href={view.facebookUrl || "#"}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {view.facebookHandle}
-              </a>
-            </li>
-            <li>
-              TikTok:{" "}
-              <a href={view.tiktokUrl || "#"} target="_blank" rel="noreferrer">
-                {view.tiktokHandle}
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
+            <Card title="Lokasi">
+              <Typography.Paragraph style={{ marginBottom: 8 }}>
+                {view.address}
+              </Typography.Paragraph>
+              <Typography.Text strong>Jam buka</Typography.Text>
+              <div style={{ marginTop: 8 }}>
+                {view.hours.length > 0 ? (
+                  <List
+                    size="small"
+                    dataSource={view.hours}
+                    renderItem={(item, index) => (
+                      <List.Item key={`${item?.day}-${index}`}>
+                        {item?.day}: {item?.open} - {item?.close}
+                      </List.Item>
+                    )}
+                  />
+                ) : (
+                  <Typography.Paragraph style={{ marginBottom: 0 }}>
+                    Senin - Sabtu, 09:00 - 20:00
+                  </Typography.Paragraph>
+                )}
+              </div>
+            </Card>
+
+            <Card title="Sosial Media">
+              <Space direction="vertical" size="small">
+                <Typography.Text>
+                  Instagram:{" "}
+                  <a
+                    href={view.instagramUrl || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {view.instagramHandle}
+                  </a>
+                </Typography.Text>
+                <Typography.Text>
+                  Facebook:{" "}
+                  <a
+                    href={view.facebookUrl || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {view.facebookHandle}
+                  </a>
+                </Typography.Text>
+                <Typography.Text>
+                  TikTok:{" "}
+                  <a
+                    href={view.tiktokUrl || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {view.tiktokHandle}
+                  </a>
+                </Typography.Text>
+              </Space>
+            </Card>
+          </Space>
+        </Col>
+      </Row>
     </div>
   );
 };
