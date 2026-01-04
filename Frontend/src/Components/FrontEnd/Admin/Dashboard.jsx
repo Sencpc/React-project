@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import AdminLayout from "./AdminLayout";
 import { Card, Col, Row, Statistic, Typography } from "antd";
 import {
@@ -6,6 +7,8 @@ import {
   TeamOutlined,
   TagOutlined,
 } from "@ant-design/icons";
+import { useAuth } from "../../../context/AuthContext";
+import { API_BASE_URL } from "../../../config/env.js";
 import {
   LineChart,
   Line,
@@ -23,66 +26,156 @@ import {
 } from "recharts";
 
 const Dashboard = () => {
-  // Data untuk grafik revenue per bulan
-  const monthlyRevenueData = [
-    { month: "Jan", revenue: 12500000, discount: 1250000, net: 11250000 },
-    { month: "Feb", revenue: 14200000, discount: 1420000, net: 12780000 },
-    { month: "Mar", revenue: 13800000, discount: 1380000, net: 12420000 },
-    { month: "Apr", revenue: 15600000, discount: 1560000, net: 14040000 },
-    { month: "May", revenue: 17300000, discount: 1730000, net: 15570000 },
-    { month: "Jun", revenue: 16900000, discount: 1690000, net: 15210000 },
-    { month: "Jul", revenue: 18500000, discount: 1850000, net: 16650000 },
-    { month: "Aug", revenue: 19200000, discount: 1920000, net: 17280000 },
-    { month: "Sep", revenue: 20100000, discount: 2010000, net: 18090000 },
-    { month: "Oct", revenue: 22400000, discount: 2240000, net: 20160000 },
-  ];
+  const { token } = useAuth();
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Data untuk grafik revenue per minggu (bulan Oktober)
-  const weeklyRevenueData = [
-    { week: "Week 1", revenue: 5200000, discount: 520000, net: 4680000 },
-    { week: "Week 2", revenue: 5800000, discount: 580000, net: 5220000 },
-    { week: "Week 3", revenue: 6100000, discount: 610000, net: 5490000 },
-    { week: "Week 4", revenue: 5300000, discount: 530000, net: 4770000 },
-  ];
+  useEffect(() => {
+    let cancelled = false;
 
-  // Data untuk service popularity
-  const serviceData = [
-    { name: "Haircut", value: 35, color: "#EF4444" },
-    { name: "Coloring", value: 25, color: "#F59E0B" },
-    { name: "Treatment", value: 20, color: "#10B981" },
-    { name: "Spa", value: 15, color: "#3B82F6" },
-    { name: "Others", value: 5, color: "#8B5CF6" },
-  ];
+    const load = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null);
+          throw new Error(payload?.message || "Failed to load dashboard");
+        }
+
+        const data = await response.json();
+        if (!cancelled) {
+          setDashboard(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err?.message || "Failed to load dashboard");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(Number(value ?? 0));
+
+  const million = (value) => {
+    const numeric = Number(value ?? 0);
+    if (!Number.isFinite(numeric)) return 0;
+    return numeric / 1_000_000;
+  };
+
+  const stats = dashboard?.stats;
+  const series = dashboard?.series;
+
+  const monthlyRevenueData = Array.isArray(series?.monthlyRevenueData)
+    ? series.monthlyRevenueData
+    : [];
+  const weeklyRevenueData = Array.isArray(series?.weeklyRevenueData)
+    ? series.weeklyRevenueData
+    : [];
+
+  const serviceData = useMemo(() => {
+    const palette = [
+      "#EF4444",
+      "#F59E0B",
+      "#10B981",
+      "#3B82F6",
+      "#8B5CF6",
+      "#EC4899",
+      "#06B6D4",
+      "#84CC16",
+    ];
+
+    const raw = Array.isArray(stats?.servicePopularity)
+      ? stats.servicePopularity
+      : [];
+
+    const total = raw.reduce((acc, entry) => acc + Number(entry?.count ?? 0), 0);
+    if (total <= 0) return [];
+
+    return raw
+      .slice(0, 8)
+      .map((entry, index) => ({
+        name: entry?.name || "Service",
+        value: Number(entry?.count ?? 0),
+        color: palette[index % palette.length],
+      }))
+      .filter((entry) => entry.value > 0);
+  }, [stats?.servicePopularity]);
+
+  const monthLabel = useMemo(() => {
+    const year = dashboard?.year;
+    const month = dashboard?.month;
+    if (!year || !month) return "Current Month";
+    const date = new Date(year, month - 1, 1);
+    return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+  }, [dashboard?.year, dashboard?.month]);
+
+  const revenueMonthly = stats?.revenueMonthly;
+  const insight = stats?.insights;
 
   return (
     <AdminLayout title="Dashboard">
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card loading={loading}>
               <Statistic
                 title="Active Users"
-                value={1247}
+                value={stats?.activeUsers ?? 0}
                 prefix={<TeamOutlined />}
-                suffix={<Typography.Text type="secondary">(+12%)</Typography.Text>}
+                suffix={
+                  error ? (
+                    <Typography.Text type="danger">(error)</Typography.Text>
+                  ) : null
+                }
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card loading={loading}>
               <Statistic
                 title="Active Coupons"
-                value={52}
+                value={stats?.activeCoupons ?? 0}
                 prefix={<TagOutlined />}
-                suffix={<Typography.Text type="secondary">(12 expiring)</Typography.Text>}
+                suffix={
+                  <Typography.Text type="secondary">
+                    ({stats?.expiringCoupons ?? 0} expiring)
+                  </Typography.Text>
+                }
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card loading={loading}>
               <Statistic
                 title="Revenue (Monthly)"
-                value={20.1}
+                value={million(revenueMonthly?.net)}
                 precision={1}
                 prefix={<DollarOutlined />}
                 suffix="M"
@@ -90,10 +183,10 @@ const Dashboard = () => {
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card>
+            <Card loading={loading}>
               <Statistic
                 title="Discount (Monthly)"
-                value={2.24}
+                value={million(revenueMonthly?.discount)}
                 precision={2}
                 prefix={<PercentageOutlined />}
                 suffix="M"
@@ -108,9 +201,10 @@ const Dashboard = () => {
               title="Monthly Revenue Trend"
               extra={
                 <Typography.Text type="secondary">
-                  Revenue vs Discount vs Net Revenue (2024)
+                  Revenue vs Discount vs Net Revenue ({dashboard?.year ?? "—"})
                 </Typography.Text>
               }
+              loading={loading}
             >
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyRevenueData}>
@@ -156,9 +250,10 @@ const Dashboard = () => {
               title="Weekly Revenue Breakdown"
               extra={
                 <Typography.Text type="secondary">
-                  October 2024 - Weekly Performance
+                  {monthLabel} - Weekly Performance
                 </Typography.Text>
               }
+              loading={loading}
             >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={weeklyRevenueData}>
@@ -231,15 +326,17 @@ const Dashboard = () => {
               <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-600">
-                    Gross Revenue (October)
+                    Gross Revenue ({monthLabel})
                   </p>
                   <p className="text-2xl font-bold text-purple-600">
-                    Rp 22,400,000
+                    {formatCurrency(revenueMonthly?.gross)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Total Bookings</p>
-                  <p className="text-xl font-semibold text-gray-900">247</p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    {revenueMonthly?.transactions ?? 0}
+                  </p>
                 </div>
               </div>
 
@@ -247,12 +344,14 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm text-gray-600">Coupon Discounts</p>
                   <p className="text-2xl font-bold text-red-600">
-                    - Rp 2,240,000
+                    - {formatCurrency(revenueMonthly?.discount)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Discount Rate</p>
-                  <p className="text-xl font-semibold text-gray-900">10%</p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    {`${((revenueMonthly?.discountRate ?? 0) * 100).toFixed(0)}%`}
+                  </p>
                 </div>
               </div>
 
@@ -260,13 +359,13 @@ const Dashboard = () => {
                 <div>
                   <p className="text-sm text-gray-600">Net Revenue</p>
                   <p className="text-2xl font-bold text-green-600">
-                    Rp 20,160,000
+                    {formatCurrency(revenueMonthly?.net)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Avg per Booking</p>
                   <p className="text-xl font-semibold text-gray-900">
-                    Rp 81,619
+                    {formatCurrency(revenueMonthly?.avgPerBooking)}
                   </p>
                 </div>
               </div>
@@ -275,20 +374,26 @@ const Dashboard = () => {
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <p className="text-xs text-gray-600">Most Popular Service</p>
                   <p className="text-lg font-bold text-blue-600">
-                    Haircut (35%)
+                    {stats?.insights?.mostPopularService || "—"}
                   </p>
                 </div>
                 <div className="p-3 bg-yellow-50 rounded-lg">
                   <p className="text-xs text-gray-600">Peak Day</p>
-                  <p className="text-lg font-bold text-yellow-600">Saturday</p>
+                  <p className="text-lg font-bold text-yellow-600">
+                    {insight?.peakDay || "—"}
+                  </p>
                 </div>
                 <div className="p-3 bg-pink-50 rounded-lg">
                   <p className="text-xs text-gray-600">Active Admin</p>
-                  <p className="text-lg font-bold text-pink-600">18 Members</p>
+                  <p className="text-lg font-bold text-pink-600">
+                    {insight?.activeAdmins ?? 0} Members
+                  </p>
                 </div>
                 <div className="p-3 bg-indigo-50 rounded-lg">
                   <p className="text-xs text-gray-600">Customer Retention</p>
-                  <p className="text-lg font-bold text-indigo-600">78%</p>
+                  <p className="text-lg font-bold text-indigo-600">
+                    {`${Number(insight?.customerRetentionPercent ?? 0).toFixed(0)}%`}
+                  </p>
                 </div>
               </div>
             </div>
@@ -303,7 +408,9 @@ const Dashboard = () => {
                 <p className="text-xs text-gray-500 uppercase">
                   Pending Bookings
                 </p>
-                <p className="text-2xl font-bold text-gray-900">38</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.quickStats?.pendingBookings ?? 0}
+                </p>
               </div>
               <div className="bg-blue-100 rounded-full p-3">
                 <svg
@@ -329,7 +436,9 @@ const Dashboard = () => {
                 <p className="text-xs text-gray-500 uppercase">
                   Completed Today
                 </p>
-                <p className="text-2xl font-bold text-gray-900">24</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.quickStats?.completedToday ?? 0}
+                </p>
               </div>
               <div className="bg-green-100 rounded-full p-3">
                 <svg
@@ -353,7 +462,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 uppercase">New Customers</p>
-                <p className="text-2xl font-bold text-gray-900">156</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.quickStats?.newCustomers ?? 0}
+                </p>
               </div>
               <div className="bg-yellow-100 rounded-full p-3">
                 <svg
@@ -377,7 +488,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500 uppercase">Cancelled</p>
-                <p className="text-2xl font-bold text-gray-900">7</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.quickStats?.cancelledToday ?? 0}
+                </p>
               </div>
               <div className="bg-red-100 rounded-full p-3">
                 <svg
