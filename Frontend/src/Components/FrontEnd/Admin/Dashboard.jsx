@@ -1,4 +1,11 @@
 import AdminLayout from "./AdminLayout";
+import { Card, Col, Row, Statistic, Typography } from "antd";
+import {
+  DollarOutlined,
+  PercentageOutlined,
+  TeamOutlined,
+  TagOutlined,
+} from "@ant-design/icons";
 import {
   LineChart,
   Line,
@@ -49,162 +56,62 @@ const Dashboard = () => {
 
   return (
     <AdminLayout title="Dashboard">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="bg-blue-500 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gray-500/35 bg-opacity-30 rounded-md p-3">
-                  <svg
-                    className="w-[48px] h-[48px] text-gray-800 dark:text-white"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-2 9a4 4 0 0 0-4 4v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-1a4 4 0 0 0-4-4h-4Z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-white text-opacity-90 truncate">
-                      Active Users
-                    </dt>
-                    <dd className="text-3xl font-bold text-white">1,247</dd>
-                    <dd className="text-xs text-white text-opacity-80 mt-1">
-                      ↑ 12% from last month
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Active Users"
+                value={1247}
+                prefix={<TeamOutlined />}
+                suffix={<Typography.Text type="secondary">(+12%)</Typography.Text>}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Active Coupons"
+                value={52}
+                prefix={<TagOutlined />}
+                suffix={<Typography.Text type="secondary">(12 expiring)</Typography.Text>}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Revenue (Monthly)"
+                value={20.1}
+                precision={1}
+                prefix={<DollarOutlined />}
+                suffix="M"
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Discount (Monthly)"
+                value={2.24}
+                precision={2}
+                prefix={<PercentageOutlined />}
+                suffix="M"
+              />
+            </Card>
+          </Col>
+        </Row>
 
-          <div className="bg-green-500 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gray-500/35 bg-opacity-30 rounded-md p-3">
-                  <svg
-                    className="w-[48px] h-[48px] text-gray-800 dark:text-white"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M18.045 3.007 12.31 3a1.965 1.965 0 0 0-1.4.585l-7.33 7.394a2 2 0 0 0 0 2.805l6.573 6.631a1.957 1.957 0 0 0 1.4.585 1.965 1.965 0 0 0 1.4-.585l7.409-7.477A2 2 0 0 0 21 11.479v-5.5a2.972 2.972 0 0 0-2.955-2.972Zm-2.452 6.438a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-white text-opacity-90 truncate">
-                      Active Coupons
-                    </dt>
-                    <dd className="text-3xl font-bold text-white">52</dd>
-                    <dd className="text-xs text-white text-opacity-80 mt-1">
-                      12 expiring soon
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-purple-500 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gray-500/35 bg-opacity-30 rounded-md p-3">
-                  <svg
-                    className="w-[48px] h-[48px] text-gray-800 dark:text-white"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                      d="M13.6 16.733c.234.269.548.456.895.534a1.4 1.4 0 0 0 1.75-.762c.172-.615-.446-1.287-1.242-1.481-.796-.194-1.41-.861-1.241-1.481a1.4 1.4 0 0 1 1.75-.762c.343.077.654.26.888.524m-1.358 4.017v.617m0-5.939v.725M4 15v4m3-6v6M6 8.5 10.5 5 14 7.5 18 4m0 0h-3.5M18 4v3m2 8a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-white text-opacity-90 truncate">
-                      Revenue (Monthly)
-                    </dt>
-                    <dd className="text-3xl font-bold text-white">Rp 20.1M</dd>
-                    <dd className="text-xs text-white text-opacity-80 mt-1">
-                      ↑ 8.5% from last month
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-orange-500 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gray-500/35 bg-opacity-30 rounded-md p-3">
-                  <svg
-                    className="w-[48px] h-[48px] text-gray-800 dark:text-white"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                      d="M4 10h16M8 14h8m-4-7V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-white text-opacity-90 truncate">
-                      Revenue (Weekly)
-                    </dt>
-                    <dd className="text-3xl font-bold text-white">Rp 5.3M</dd>
-                    <dd className="text-xs text-white text-opacity-80 mt-1">
-                      Current week (Week 4)
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Monthly Revenue Chart */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Monthly Revenue Trend
-              </h3>
-              <p className="text-sm text-gray-500">
-                Revenue vs Discount vs Net Revenue (2024)
-              </p>
-            </div>
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} lg={12}>
+            <Card
+              title="Monthly Revenue Trend"
+              extra={
+                <Typography.Text type="secondary">
+                  Revenue vs Discount vs Net Revenue (2024)
+                </Typography.Text>
+              }
+            >
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyRevenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -241,18 +148,18 @@ const Dashboard = () => {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+            </Card>
+          </Col>
 
-          {/* Weekly Revenue Chart */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Weekly Revenue Breakdown
-              </h3>
-              <p className="text-sm text-gray-500">
-                October 2024 - Weekly Performance
-              </p>
-            </div>
+          <Col xs={24} lg={12}>
+            <Card
+              title="Weekly Revenue Breakdown"
+              extra={
+                <Typography.Text type="secondary">
+                  October 2024 - Weekly Performance
+                </Typography.Text>
+              }
+            >
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={weeklyRevenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -271,8 +178,9 @@ const Dashboard = () => {
                 <Bar dataKey="net" fill="#10B981" name="Net Revenue" />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+            </Card>
+          </Col>
+        </Row>
 
         {/* Bottom Row - Service Popularity & Revenue Summary */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
