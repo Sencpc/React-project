@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Alert, Button, Form, Input, Modal, Typography } from "antd";
+
 import { API_BASE_URL } from "../../../config/env.js";
 
 const STEPS = {
@@ -8,72 +10,40 @@ const STEPS = {
   success: "success",
 };
 
-const initialState = {
-  email: "",
-  code: "",
-  password: "",
-  confirmPassword: "",
-};
-
-const ForgotPasswordModal = ({ onClose }) => {
-  const modalRef = useRef(null);
-  const [formState, setFormState] = useState(initialState);
+const ForgotPasswordModal = ({ onClose }) =>{
+  const [form] = Form.useForm();
   const [step, setStep] = useState(STEPS.request);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [email, setEmail] = useState("");
   const [resetToken, setResetToken] = useState(null);
   const [expiresAt, setExpiresAt] = useState(null);
 
   const closeAndReset = () => {
-    setFormState(initialState);
     setStep(STEPS.request);
     setSubmitting(false);
     setError("");
     setInfo("");
+    setEmail("");
     setResetToken(null);
     setExpiresAt(null);
+    form.resetFields();
     onClose?.();
   };
 
   useEffect(() => {
-    const handler = (event) => {
-      if (event.key === "Escape") {
-        closeAndReset();
-      }
-    };
-
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        closeAndReset();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
-    if (error) {
-      setError("");
-    }
-    if (info) {
-      setInfo("");
-    }
-  };
-
-  const requestCode = async (event) => {
-    event.preventDefault();
+    form.resetFields();
     setError("");
+    setInfo("");
+  }, [form, step]);
 
-    if (!formState.email) {
+  const requestCode = async (values) => {
+    setError("");
+    setInfo("");
+
+    const nextEmail = values?.email;
+    if (!nextEmail) {
       setError("Email is required");
       return;
     }
@@ -83,7 +53,7 @@ const ForgotPasswordModal = ({ onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/password/forgot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formState.email }),
+        body: JSON.stringify({ email: nextEmail }),
       });
 
       const data = await response.json();
@@ -91,20 +61,22 @@ const ForgotPasswordModal = ({ onClose }) => {
         throw new Error(data?.message || "Failed to send verification code");
       }
 
+      setEmail(nextEmail);
       setInfo(data?.message || "Verification code sent via SMS");
       setStep(STEPS.verify);
     } catch (err) {
-      setError(err.message || "Failed to send verification code");
+      setError(err?.message || "Failed to send verification code");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const verifyCode = async (event) => {
-    event.preventDefault();
+  const verifyCode = async (values) => {
     setError("");
+    setInfo("");
 
-    if (!formState.code) {
+    const code = values?.code;
+    if (!code) {
       setError("Verification code is required");
       return;
     }
@@ -114,14 +86,12 @@ const ForgotPasswordModal = ({ onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/password/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formState.email, code: formState.code }),
+        body: JSON.stringify({ email, code }),
       });
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(
-          data?.message || "Invalid or expired verification code"
-        );
+        throw new Error(data?.message || "Invalid or expired verification code");
       }
 
       setResetToken(data.resetToken);
@@ -129,34 +99,25 @@ const ForgotPasswordModal = ({ onClose }) => {
       setInfo("Phone number verified. You can now set a new password.");
       setStep(STEPS.reset);
     } catch (err) {
-      setError(err.message || "Failed to verify the provided code");
+      setError(err?.message || "Failed to verify the provided code");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const resetPassword = async (event) => {
-    event.preventDefault();
+  const resetPassword = async (values) => {
     setError("");
-
-    if (!formState.password || !formState.confirmPassword) {
-      setError("Please enter and confirm your new password");
-      return;
-    }
-
-    if (formState.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
-    if (formState.password !== formState.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    setInfo("");
 
     if (!resetToken) {
       setError("Verification is required before resetting password");
       setStep(STEPS.verify);
+      return;
+    }
+
+    const password = values?.password;
+    if (!password) {
+      setError("Please enter your new password");
       return;
     }
 
@@ -165,11 +126,7 @@ const ForgotPasswordModal = ({ onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/password/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formState.email,
-          token: resetToken,
-          password: formState.password,
-        }),
+        body: JSON.stringify({ email, token: resetToken, password }),
       });
 
       const data = await response.json();
@@ -181,131 +138,125 @@ const ForgotPasswordModal = ({ onClose }) => {
       setInfo(data?.message || "Password updated successfully");
       setTimeout(closeAndReset, 2000);
     } catch (err) {
-      setError(err.message || "Failed to reset password");
+      setError(err?.message || "Failed to reset password");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const title =
+    step === STEPS.request
+      ? "Forgot password"
+      : step === STEPS.verify
+        ? "Verify code"
+        : step === STEPS.reset
+          ? "Reset password"
+          : "Success";
+
   const renderContent = () => {
     switch (step) {
       case STEPS.request:
         return (
-          <form className="space-y-5" onSubmit={requestCode}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Registered Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formState.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-red-300 focus:border-transparent"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-red-400 text-white font-semibold py-3 rounded-lg hover:bg-red-500 transition disabled:opacity-70"
+          <Form
+            form={form}
+            layout="vertical"
+            requiredMark={false}
+            onFinish={requestCode}
+            disabled={submitting}
+          >
+            <Form.Item
+              label="Registered Email"
+              name="email"
+              rules={[
+                { required: true, message: "Email is required" },
+                { type: "email", message: "Please enter a valid email" },
+              ]}
             >
-              {submitting ? "Sending..." : "Send Verification Code"}
-            </button>
-          </form>
+              <Input placeholder="you@example.com" autoComplete="email" />
+            </Form.Item>
+            <Button htmlType="submit" type="primary" danger block loading={submitting}>
+              Send Verification Code
+            </Button>
+          </Form>
         );
       case STEPS.verify:
         return (
-          <form className="space-y-5" onSubmit={verifyCode}>
-            <p className="text-sm text-gray-600">
-              Enter the 6-digit code sent to the phone number linked with{" "}
-              {formState.email}.
-            </p>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Verification Code
-              </label>
-              <input
-                type="text"
-                name="code"
-                value={formState.code}
-                onChange={handleChange}
-                placeholder="123456"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-red-300 focus:border-transparent"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-red-400 text-white font-semibold py-3 rounded-lg hover:bg-red-500 transition disabled:opacity-70"
+          <Form
+            form={form}
+            layout="vertical"
+            requiredMark={false}
+            onFinish={verifyCode}
+            disabled={submitting}
+          >
+            <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              Enter the 6-digit code sent to the phone number linked with {email}.
+            </Typography.Paragraph>
+            <Form.Item
+              label="Verification Code"
+              name="code"
+              rules={[{ required: true, message: "Verification code is required" }]}
             >
-              {submitting ? "Verifying..." : "Verify Code"}
-            </button>
-          </form>
+              <Input placeholder="123456" inputMode="numeric" autoComplete="one-time-code" />
+            </Form.Item>
+            <Button htmlType="submit" type="primary" danger block loading={submitting}>
+              Verify Code
+            </Button>
+          </Form>
         );
       case STEPS.reset:
         return (
-          <form className="space-y-5" onSubmit={resetPassword}>
+          <Form
+            form={form}
+            layout="vertical"
+            requiredMark={false}
+            onFinish={resetPassword}
+            disabled={submitting}
+          >
             {expiresAt && (
-              <p className="text-xs text-gray-500">
+              <Typography.Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
                 Token expires at {new Date(expiresAt).toLocaleTimeString()}
-              </p>
+              </Typography.Text>
             )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                New Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formState.password}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-red-300 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formState.confirmPassword}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-red-300 focus:border-transparent"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-red-400 text-white font-semibold py-3 rounded-lg hover:bg-red-500 transition disabled:opacity-70"
+            <Form.Item
+              label="New Password"
+              name="password"
+              rules={[
+                { required: true, message: "Please enter your new password" },
+                { min: 6, message: "Password must be at least 6 characters" },
+              ]}
             >
-              {submitting ? "Updating..." : "Update Password"}
-            </button>
-          </form>
+              <Input.Password placeholder="Enter a new password" autoComplete="new-password" />
+            </Form.Item>
+            <Form.Item
+              label="Confirm Password"
+              name="confirmPassword"
+              dependencies={["password"]}
+              rules={[
+                { required: true, message: "Please confirm your new password" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error("Passwords do not match"));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password placeholder="Confirm your new password" autoComplete="new-password" />
+            </Form.Item>
+            <Button htmlType="submit" type="primary" danger block loading={submitting}>
+              Update Password
+            </Button>
+          </Form>
         );
       case STEPS.success:
         return (
-          <div className="text-center space-y-4">
-            <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-              <svg
-                className="h-8 w-8 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <p className="text-gray-700 font-medium">
-              Password updated successfully. You can sign in with the new
-              password.
-            </p>
+          <div style={{ display: "grid", gap: 12 }}>
+            <Typography.Text>Password updated successfully.</Typography.Text>
+            <Button type="primary" danger block onClick={closeAndReset}>
+              Close
+            </Button>
           </div>
         );
       default:
@@ -314,59 +265,18 @@ const ForgotPasswordModal = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4 z-50">
-      <div
-        ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-800">
-              Reset password
-            </h3>
-            <p className="text-sm text-gray-500">
-              {step === STEPS.request && "We will text a verification code."}
-              {step === STEPS.verify && "Enter the code to verify your phone."}
-              {step === STEPS.reset && "Create a new password."}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={closeAndReset}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {error && (
-          <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 border border-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {info && (
-          <div className="p-3 mb-4 text-sm text-green-700 bg-green-100 border border-green-200 rounded-lg">
-            {info}
-          </div>
-        )}
-
-        {renderContent()}
-
-        {step !== STEPS.success && (
-          <p className="mt-6 text-xs text-gray-500 text-center">
-            Need help? Contact our support team.
-          </p>
-        )}
-      </div>
-    </div>
+    <Modal
+      open
+      title={title}
+      onCancel={closeAndReset}
+      footer={null}
+      destroyOnClose
+      maskClosable
+    >
+      {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 12 }} />}
+      {info && <Alert type="success" showIcon message={info} style={{ marginBottom: 12 }} />}
+      {renderContent()}
+    </Modal>
   );
 };
 

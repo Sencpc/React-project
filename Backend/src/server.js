@@ -13,6 +13,7 @@ import servicesRouter from "./controllers/services.js";
 import customerRouter from "./controllers/customer.js";
 import verifyRouter from "./controllers/verify.js";
 import settingsRouter from "./controllers/settings.js";
+import adminDashboardRouter from "./controllers/adminDashboard.js";
 import twilioSmsRouter from "./routes/twilio-sms.js";
 import {
   runBookingReminderScan,
@@ -41,6 +42,7 @@ app.use("/api/services", servicesRouter);
 app.use("/api/customer", customerRouter);
 app.use("/api/verify", verifyRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/admin", adminDashboardRouter);
 app.use("/api/twilio-sms", twilioSmsRouter);
 
 // Health route

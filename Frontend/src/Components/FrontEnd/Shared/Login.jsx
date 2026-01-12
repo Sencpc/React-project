@@ -10,20 +10,17 @@ import logo from "../../../assets/SharedAsset/logo.png";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import {
   ArrowLeftOutlined,
-  EyeInvisibleOutlined,
-  EyeTwoTone,
+  LockOutlined,
+  MailOutlined,
 } from "@ant-design/icons";
 import { API_BASE_URL } from "../../../config/env.js";
-import { Input } from "antd";
+import { Alert, Button, Card, Checkbox, Form, Input, Space, Typography } from "antd";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, login, user } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [form] = Form.useForm();
   const [apiError, setApiError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +46,7 @@ const Login = () => {
     if (!location.state) return;
 
     if (location.state.email) {
-      setEmail(location.state.email);
+      form.setFieldsValue({ email: location.state.email });
     }
 
     if (location.state.registered) {
@@ -57,36 +54,13 @@ const Login = () => {
     }
 
     navigate(location.pathname, { replace: true, state: null });
-  }, [isAuthenticated, location, navigate, user]);
+  }, [form, isAuthenticated, location, navigate, user]);
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Email validation
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (values) => {
+    const { email, password } = values;
 
     setApiError("");
     setInfoMessage("");
-
-    if (!validateForm()) return;
 
     const authenticate = async () => {
       try {
@@ -126,7 +100,7 @@ const Login = () => {
 
         // Wait for minimum 2 seconds
         const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(0, 1000 - elapsedTime);
+        const remainingTime = Math.max(0, 2000 - elapsedTime);
         await new Promise((resolve) => setTimeout(resolve, remainingTime));
 
         login({ token: data.token, user: data.user, rememberMe });
@@ -162,211 +136,111 @@ const Login = () => {
         </Link>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
-          {/* Logo and Header */}
+        <Card className="rounded-2xl shadow-2xl" styles={{ body: { padding: 32 } }}>
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <img src={logo} alt="Logo" className="h-20 w-auto" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            <Typography.Title level={2} style={{ marginBottom: 4 }}>
               Welcome Back
-            </h2>
-            <p className="text-gray-600 text-sm">
+            </Typography.Title>
+            <Typography.Text type="secondary">
               Please sign in to your account
-            </p>
+            </Typography.Text>
           </div>
 
-          {/* Login Form */}
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-5">
-              {apiError && (
-                <div className="p-3 bg-red-100 border border-red-200 text-red-700 rounded-lg text-sm">
-                  {apiError}
-                </div>
-              )}
-              {infoMessage && (
-                <div className="p-3 bg-green-100 border border-green-200 text-green-700 rounded-lg text-sm">
-                  {infoMessage}
-                </div>
-              )}
-              {/* Email Input */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                      />
-                    </svg>
-                  </div>
-                  <Input
-                    size="large"
-                    placeholder="Enter your email"
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    prefix={
-                      <svg
-                        className="h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                        />
-                      </svg>
-                    }
-                  />
-                </div>
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
+          <Space direction="vertical" size="middle" style={{ width: "100%", marginTop: 24 }}>
+            {apiError && <Alert type="error" showIcon message={apiError} />}
+            {infoMessage && <Alert type="success" showIcon message={infoMessage} />}
 
-              {/* Password Input */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <Input.Password
-                    id="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    iconRender={(visible) =>
-                      visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-                    }
-                    prefix={
-                      <svg
-                        className="h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
-                      </svg>
-                    }
-                    className={`w-full rounded-lg ${
-                      errors.password
-                        ? "border-red-400 hover:border-red-400 focus:border-red-400"
-                        : "border-gray-300"
-                    }`}
-                    size="large"
-                  />
-                </div>
-                {errors.password && (
-                  <p className="mt-2 text-sm text-red-600">{errors.password}</p>
-                )}
-              </div>
-            </div>
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+              requiredMark={false}
+              disabled={isSubmitting}
+            >
+              <Form.Item
+                label="Email Address"
+                name="email"
+                rules={[
+                  { required: true, message: "Email is required" },
+                  { type: "email", message: "Please enter a valid email" },
+                ]}
+              >
+                <Input
+                  size="large"
+                  placeholder="Enter your email"
+                  autoComplete="email"
+                  prefix={<MailOutlined />}
+                />
+              </Form.Item>
 
-            {/* Remember Me and Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[
+                  { required: true, message: "Password is required" },
+                  {
+                    min: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                ]}
+              >
+                <Input.Password
+                  size="large"
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  prefix={<LockOutlined />}
+                />
+              </Form.Item>
+
+              <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+                <Checkbox
                   checked={rememberMe}
                   onChange={(event) => setRememberMe(event.target.checked)}
-                  className="h-4 w-4 text-red-300 focus:ring-red-300 border-gray-300 rounded cursor-pointer"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-700 cursor-pointer"
                 >
                   Remember me
-                </label>
-              </div>
+                </Checkbox>
 
-              <div className="text-sm">
-                <button
-                  type="button"
+                <Button
+                  type="link"
                   onClick={() => setShowForgotPassword(true)}
-                  className="font-medium text-red-400 hover:text-red-500 transition duration-150 ease-in-out"
+                  style={{ paddingInline: 0 }}
                 >
                   Forgot password?
-                </button>
+                </Button>
               </div>
-            </div>
 
-            {/* Submit Button */}
-            <div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-red-300 hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-300 transition-all duration-300 transform hover:scale-[1.02] shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                  <svg
-                    className="h-5 w-5 text-white group-hover:text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                    />
-                  </svg>
-                </span>
-                {isSubmitting ? "Signing In..." : "Sign In"}
-              </button>
-            </div>
-
-            {/* Sign Up Link */}
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="font-medium text-red-400 hover:text-red-500 transition duration-150 ease-in-out"
+              <Form.Item style={{ marginBottom: 12 }}>
+                <Button
+                  htmlType="submit"
+                  type="primary"
+                  danger
+                  size="large"
+                  block
+                  loading={isSubmitting}
                 >
-                  Sign up now
-                </Link>
-              </p>
-            </div>
-          </form>
-        </div>
+                  Sign In
+                </Button>
+              </Form.Item>
+
+              <div className="text-center">
+                <Typography.Text type="secondary">
+                  Don't have an account?{" "}
+                  <Link to="/register" className="text-red-400 hover:text-red-500">
+                    Sign up now
+                  </Link>
+                </Typography.Text>
+              </div>
+            </Form>
+          </Space>
+        </Card>
 
         {/* Footer Text */}
-        <p className="text-center text-sm text-gray-500">
+        <Typography.Text type="secondary" className="text-center block">
           © 2025 All rights reserved.
-        </p>
+        </Typography.Text>
       </div>
       {showForgotPassword && (
         <ForgotPasswordModal onClose={() => setShowForgotPassword(false)} />

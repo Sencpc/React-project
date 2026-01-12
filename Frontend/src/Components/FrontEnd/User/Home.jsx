@@ -4,7 +4,7 @@ import Model1 from '../../../assets/SharedAsset/Model1.jpg'
 import Model2 from '../../../assets/SharedAsset/Model2.jpg'
 import Model3 from '../../../assets/SharedAsset/Model3.jpg'
 import { ClockCircleOutlined, StarFilled, WhatsAppOutlined } from '@ant-design/icons'
-import { Button } from 'antd'
+import { Button, Card, Typography } from 'antd'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
@@ -112,8 +112,13 @@ const Home = () => {
 
       <section className="relative -mt-24 z-10 mb-16">
         <div className="container mx-auto px-6">
-          <div className="bg-white rounded-3xl shadow-xl px-6 sm:px-8 md:px-12 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-16 text-gray-800 max-w-6xl mx-auto">
+          <Card
+            bordered={false}
+            className="bg-white rounded-3xl shadow-xl"
+            styles={{ body: { padding: 0 } }}
+          >
+            <div className="px-6 sm:px-8 md:px-12 py-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-16 text-gray-800 max-w-6xl mx-auto">
             <div className="flex flex-col items-center text-center md:text-left md:items-start w-full">
               <h2 className="text-base md:text-lg font-bold mb-3 md:mb-4 text-gray-900">Layanan pelanggan</h2>
               <a href={homeInfo.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-red-400 transition-colors">
@@ -161,8 +166,9 @@ const Home = () => {
                 </div>
               </div>
             </div>
+              </div>
             </div>
-          </div>
+          </Card>
         </div>
       </section>
 
@@ -170,116 +176,182 @@ const Home = () => {
       <section className="py-16 bg-gradient-to-b from-white to-pink-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">Our Services</h2>
+            <Typography.Title
+              level={2}
+              className="text-4xl font-bold text-gray-900"
+              style={{ margin: 0, marginBottom: '0.75rem' }}
+            >
+              Our Services
+            </Typography.Title>
             <div className="w-24 h-1 bg-red-400 mx-auto rounded-full"></div>
           </div>
           
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Service Item */}
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
-                <h3 className="text-lg font-semibold text-gray-900">Cutting / Blow</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Cutting / Blow</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
-                <h3 className="text-lg font-semibold text-gray-900">Creambath</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Creambath</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
-                <h3 className="text-lg font-semibold text-gray-900">Make Up</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Make Up</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
-                <h3 className="text-lg font-semibold text-gray-900">Massage</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <StarFilled style={{ fontSize: '20px', color: '#f87171' }} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Massage</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Pelurusan / Smoothing / Ion</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Pelurusan / Smoothing / Ion</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Pengeritingan</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Pengeritingan</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Pewarnaan / Highlight</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Pewarnaan / Highlight</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Cuci Blow / Blow Extension</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Cuci Blow / Blow Extension</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Hair Extension</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Hair Extension</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Facial</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Facial</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Manicure Pedicure</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Manicure Pedicure</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Perawatan Badan</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Perawatan Badan</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Hair Mask</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Hair Mask</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Body Spa</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Body Spa</h3>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border border-pink-100">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <h3 className="text-lg font-semibold text-gray-900">Hair Spa</h3>
+            <Card bordered={false} className="bg-white rounded-xl shadow-md border border-pink-100" styles={{ body: { padding: 0 } }}>
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 leading-none">Hair Spa</h3>
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
 
           <div className="text-center mt-12">

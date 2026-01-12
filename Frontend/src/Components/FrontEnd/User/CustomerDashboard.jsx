@@ -2,6 +2,23 @@ import { useEffect, useMemo, useState } from "react";
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
 import { useAuth } from "../../../context/AuthContext";
 
+import {
+  Alert,
+  Card,
+  Col,
+  Row,
+  Space,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
+import {
+  CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
+
 import { API_BASE_URL } from "../../../config/env.js";
 
 const initialStats = {
@@ -10,12 +27,12 @@ const initialStats = {
   completedServices: 0,
 };
 
-const ACTIVE_STATUS_BADGE = {
-  pending: "bg-yellow-100 text-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  "in-progress": "bg-purple-100 text-purple-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+const STATUS_TAG_COLOR = {
+  pending: "gold",
+  confirmed: "blue",
+  "in-progress": "purple",
+  completed: "green",
+  cancelled: "red",
 };
 
 const formatCurrency = (value) => {
@@ -120,223 +137,174 @@ const CustomerDashboard = () => {
     return `${first}${second ? ` & ${second}` : ""}`;
   }, [upcomingBooking]);
 
+  const recentRows = useMemo(() => {
+    return (Array.isArray(recentBookings) ? recentBookings : []).map(
+      (booking, index) => {
+        const serviceNames = booking.services
+          ?.map((service) => service?.name)
+          .filter(Boolean);
+        const displayService =
+          serviceNames && serviceNames.length > 0
+            ? serviceNames.join(", ")
+            : "Service";
+
+        const totalAmount =
+          booking.payment?.totalAmount ??
+          booking.services?.reduce(
+            (sum, service) => sum + (service?.price ?? 0),
+            0
+          ) ??
+          0;
+
+        const bookingKey = (() => {
+          if (typeof booking.id === "string") return booking.id;
+          if (booking.id && typeof booking.id === "object") {
+            return booking.id.toString?.() ?? JSON.stringify(booking.id);
+          }
+          if (typeof booking._id === "string") return booking._id;
+          if (booking._id && typeof booking._id === "object") {
+            return booking._id.toString?.() ?? JSON.stringify(booking._id);
+          }
+          return `${displayService}-${booking.startTime ?? "unknown"}-${index}`;
+        })();
+
+        return {
+          key: bookingKey,
+          service: displayService,
+          date: booking.startTime,
+          status: booking.status,
+          price: totalAmount,
+        };
+      }
+    );
+  }, [recentBookings]);
+
+  const columns = useMemo(
+    () => [
+      {
+        title: "Service",
+        dataIndex: "service",
+        key: "service",
+        ellipsis: true,
+        render: (value) => (
+          <Typography.Text strong>{value || "Service"}</Typography.Text>
+        ),
+      },
+      {
+        title: "Date",
+        dataIndex: "date",
+        key: "date",
+        render: (value) => (
+          <Typography.Text type="secondary">{formatDate(value)}</Typography.Text>
+        ),
+      },
+      {
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
+        render: (value) => {
+          const normalized = (value || "pending").toString();
+          return (
+            <Tag color={STATUS_TAG_COLOR[normalized] || "default"}>
+              {normalized.replace(/-/g, " ")}
+            </Tag>
+          );
+        },
+      },
+      {
+        title: "Price",
+        dataIndex: "price",
+        key: "price",
+        align: "right",
+        render: (value) => (
+          <Typography.Text>{formatCurrency(value ?? 0)}</Typography.Text>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <CustomerDashboardLayout title="Dashboard">
-      <div className="p-6">
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
         {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
+          <Alert
+            type="error"
+            showIcon
+            message="Failed to load dashboard"
+            description={error}
+          />
         )}
 
         {upcomingBooking && (
-          <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm">
-            <p className="text-sm font-medium text-blue-700">
-              Upcoming Appointment
-            </p>
-            <div className="mt-2 flex flex-col gap-1 text-sm text-blue-800 md:flex-row md:items-center md:gap-4">
-              <span className="font-semibold text-blue-900">
-                {formatDate(upcomingBooking.startTime)}
-              </span>
-              {upcomingServiceName && <span>{upcomingServiceName}</span>}
-              <span className="capitalize">
-                Status: {upcomingBooking.status?.replace(/-/g, " ")}
-              </span>
-            </div>
-          </div>
+          <Alert
+            type="info"
+            showIcon
+            message="Upcoming Appointment"
+            description={
+              <Space wrap size="middle">
+                <Typography.Text strong>
+                  {formatDate(upcomingBooking.startTime)}
+                </Typography.Text>
+                {upcomingServiceName && (
+                  <Typography.Text>{upcomingServiceName}</Typography.Text>
+                )}
+                <Tag
+                  color={
+                    STATUS_TAG_COLOR[upcomingBooking.status] || "default"
+                  }
+                >
+                  {(upcomingBooking.status || "pending").replace(/-/g, " ")}
+                </Tag>
+              </Space>
+            }
+          />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-400">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Bookings</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {stats.totalBookings}
-                </p>
-              </div>
-              <div className="bg-red-100 rounded-full p-3">
-                <svg
-                  className="h-8 w-8 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          </div>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12} lg={8}>
+            <Card>
+              <Statistic
+                title="Total Bookings"
+                value={stats.totalBookings}
+                prefix={<CalendarOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={8}>
+            <Card>
+              <Statistic
+                title="Active Bookings"
+                value={stats.activeBookings}
+                prefix={<ClockCircleOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={8}>
+            <Card>
+              <Statistic
+                title="Completed Services"
+                value={stats.completedServices}
+                prefix={<CheckCircleOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-400">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Active Bookings</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {stats.activeBookings}
-                </p>
-              </div>
-              <div className="bg-blue-100 rounded-full p-3">
-                <svg
-                  className="h-8 w-8 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-400">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Completed Services</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {stats.completedServices}
-                </p>
-              </div>
-              <div className="bg-green-100 rounded-full p-3">
-                <svg
-                  className="h-8 w-8 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800">Recent Activity</h2>
-          </div>
-          <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Service
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {loading ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-6 py-6 text-center text-sm text-gray-500"
-                      >
-                        Loading your bookings...
-                      </td>
-                    </tr>
-                  ) : recentBookings.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-6 py-6 text-center text-sm text-gray-500"
-                      >
-                        No bookings found yet. Book a service to see it here.
-                      </td>
-                    </tr>
-                  ) : (
-                    recentBookings.map((booking) => {
-                      const serviceNames = booking.services
-                        ?.map((service) => service?.name)
-                        .filter(Boolean);
-                      const displayService =
-                        serviceNames && serviceNames.length > 0
-                          ? serviceNames.join(", ")
-                          : "Service";
-                      const totalAmount =
-                        booking.payment?.totalAmount ??
-                        booking.services?.reduce(
-                          (sum, service) => sum + (service?.price ?? 0),
-                          0
-                        ) ??
-                        0;
-                      const badgeClass =
-                        ACTIVE_STATUS_BADGE[booking.status] ||
-                        "bg-gray-100 text-gray-700";
-
-                      const bookingKey = (() => {
-                        if (typeof booking.id === "string") return booking.id;
-                        if (booking.id && typeof booking.id === "object") {
-                          return (
-                            booking.id.toString?.() ??
-                            JSON.stringify(booking.id)
-                          );
-                        }
-                        if (typeof booking._id === "string") return booking._id;
-                        if (booking._id && typeof booking._id === "object") {
-                          return (
-                            booking._id.toString?.() ??
-                            JSON.stringify(booking._id)
-                          );
-                        }
-                        return `${displayService}-${
-                          booking.startTime ?? "unknown"
-                        }`;
-                      })();
-
-                      return (
-                        <tr key={bookingKey} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {displayService}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(booking.startTime)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${badgeClass}`}
-                            >
-                              {booking.status?.replace(/-/g, " ")}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatCurrency(totalAmount)}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Card title="Recent Activity">
+          <Table
+            columns={columns}
+            dataSource={recentRows}
+            loading={loading}
+            pagination={false}
+            locale={{
+              emptyText: token
+                ? "No bookings found yet. Book a service to see it here."
+                : "Sign in to view your bookings.",
+            }}
+          />
+        </Card>
+      </Space>
     </CustomerDashboardLayout>
   );
 };

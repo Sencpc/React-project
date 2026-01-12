@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import "../../../App.css";
+import {
+  Card,
+  Col,
+  Descriptions,
+  Image,
+  List,
+  Row,
+  Space,
+  Typography,
+} from "antd";
 import logo from "../../../assets/SharedAsset/logo.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";

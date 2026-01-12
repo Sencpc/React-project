@@ -1,91 +1,64 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth, ROLE_REDIRECTS } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import logo from "../../../assets/SharedAsset/logo.png";
-import { Breadcrumb, Button } from "antd";
-import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Drawer, Space, Typography } from "antd";
+import { HomeOutlined } from "@ant-design/icons";
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const linkStyle = {
-    color: '#1f2937',
-    fontWeight: 600,
-    fontSize: '18px',
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'all 0.3s ease',
-  };
+  const linkStyle = useMemo(
+    () => ({
+      color: "#1f2937",
+      fontWeight: 600,
+      fontSize: "18px",
+      display: "inline-flex",
+      alignItems: "center",
+      lineHeight: 1,
+      transition: "all 0.3s ease",
+    }),
+    []
+  );
 
-  const handleMouseEnter = (e) => {
-    e.currentTarget.style.color = '#1f2937';
-  };
+  const navItems = useMemo(
+    () => [
+      {
+        key: "home",
+        label: "Home",
+        to: "/",
+        icon: <HomeOutlined style={{ marginRight: 8 }} />,
+      },
+      { key: "blog", label: "Blog", to: "/blog" },
+      {
+        key: "services",
+        label: "Services",
+        to: isAuthenticated ? "/customer/book" : "/book",
+      },
+      {
+        key: "about",
+        label: "About Us",
+        to: isAuthenticated ? "/customer/about" : "/about",
+      },
+    ],
+    [isAuthenticated]
+  );
 
-  const handleMouseLeave = (e) => {
-    e.currentTarget.style.color = '#1f2937';
-  };
-
-  const navLinks = (
-    <li style={{ listStyle: 'none' }}>
-      <Breadcrumb
-        items={[
-          {
-            title: (
-              <Link 
-                to="/" 
-                onClick={() => setIsOpen(false)} 
-                style={linkStyle}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                <HomeOutlined style={{ marginRight: '8px' }} />
-                Home
-              </Link>
-            ),
-          },
-          {
-            title: (
-              <Link 
-                to="/blog" 
-                onClick={() => setIsOpen(false)} 
-                style={linkStyle}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                Blog
-              </Link>
-            ),
-          },
-          {
-            title: (
-              <Link
-                to={isAuthenticated ? "/customer/book" : "/book"}
-                onClick={() => setIsOpen(false)}
-                style={linkStyle}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                Services
-              </Link>
-            ),
-          },
-          {
-            title: (
-              <Link
-                to={isAuthenticated ? "/customer/about" : "/about"}
-                onClick={() => setIsOpen(false)}
-                style={linkStyle}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                About Us
-              </Link>
-            ),
-          },
-        ]}
-      />
-    </li>
+  const NavLinks = ({ direction = "horizontal" }) => (
+    <Space direction={direction} size={direction === "horizontal" ? 24 : 16}>
+      {navItems.map((item) => (
+        <Link
+          key={item.key}
+          to={item.to}
+          onClick={() => setIsOpen(false)}
+          style={linkStyle}
+        >
+          {item.icon || null}
+          {item.label}
+        </Link>
+      ))}
+    </Space>
   );
 
   return (
@@ -106,8 +79,10 @@ const Navbar = () => {
             </Link>
 
             {/* Desktop Navigation Menu */}
-            <ul className="hidden md:flex space-x-6 items-center">
-              {navLinks}
+            <ul className="hidden md:flex space-x-6 items-center relative top-2">
+              <li style={{ listStyle: "none" }}>
+                <NavLinks />
+              </li>
 
               {isAuthenticated ? (
                 <>
@@ -133,22 +108,28 @@ const Navbar = () => {
                     </Link>
                   </li>
                   <li className="ml-4">
-                    <button
+                    <Button
                       onClick={logout}
-                      className="relative overflow-hidden bg-red-400 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/30 group cursor-pointer"
+                      type="primary"
+                      danger
+                      className="relative overflow-hidden font-bold px-8 py-3 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/30 group cursor-pointer border-none h-auto"
                     >
                       <span className="relative z-10">Log out</span>
-                      <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </button>
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </Button>
                   </li>
                 </>
               ) : (
                 <li>
                   <Link to="/login">
-                    <button className="relative overflow-hidden bg-red-400 hover:bg-red-500 text-white font-bold px-8 py-3 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/30 group cursor-pointer">
+                    <Button
+                      type="primary"
+                      danger
+                      className="relative overflow-hidden font-bold px-8 py-3 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/30 group cursor-pointer border-none h-auto"
+                    >
                       <span className="relative z-10">Login</span>
-                      <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </button>
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </Button>
                   </Link>
                 </li>
               )}
@@ -156,54 +137,83 @@ const Navbar = () => {
 
             {/* Mobile: Hamburger */}
             <div className="md:hidden flex items-center">
-              <button
+              <Button
+                type="text"
                 onClick={() => setIsOpen(true)}
                 aria-label="Open menu"
                 className="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300"
-              >
-                <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+                icon={
+                  <svg
+                    className="w-6 h-6 text-gray-800"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                }
+              />
             </div>
           </div>
         </nav>
       </header>
 
-      {/* Backdrop (only when open) */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50">
-          <div
-            className="fixed inset-0 bg-black bg-opacity-40"
-            onClick={() => setIsOpen(false)}
-          />
-        </div>
-      )}
-
-      {/* Sidebar panel (slides from right) */}
-      <aside
-        className={`fixed top-0 right-0 h-full w-72 max-w-full bg-white shadow-2xl p-6 overflow-auto z-60 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
-        aria-hidden={!isOpen}
+      <Drawer
+        open={isOpen}
+        placement="right"
+        width={288}
+        onClose={() => setIsOpen(false)}
+        closable={false}
+        styles={{ body: { padding: 24 } }}
       >
         <div className="flex items-center justify-between mb-6">
           <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center space-x-3">
             <img src={logo} alt="Logo" className="h-10 w-10 object-cover rounded-full" />
-            <span className="text-lg font-bold">Flower Beauty</span>
+            <Typography.Text strong style={{ fontSize: 16 }}>
+              Flower Beauty
+            </Typography.Text>
           </Link>
-          <button onClick={() => setIsOpen(false)} aria-label="Close menu" className="p-2 rounded-md">
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <Button
+            type="text"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
+            className="p-2 rounded-md"
+            icon={
+              <svg
+                className="w-6 h-6 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            }
+          />
         </div>
 
         <ul className="space-y-4">
-          {navLinks}
+          <li style={{ listStyle: "none" }}>
+            <NavLinks direction="vertical" />
+          </li>
 
           {isAuthenticated ? (
             <>
               <li>
-                <Link to="/customer/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 text-gray-800">
+                <Link
+                  to="/customer/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 text-gray-800"
+                >
                   <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -211,20 +221,36 @@ const Navbar = () => {
                 </Link>
               </li>
               <li>
-                <button onClick={() => { logout(); setIsOpen(false); }} className="w-full text-left bg-red-400 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full">Log out</button>
+                <Button
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                  block
+                  type="primary"
+                  danger
+                  className="w-full text-left font-bold px-4 py-3 rounded-full h-auto border-none"
+                >
+                  Log out
+                </Button>
               </li>
             </>
           ) : (
             <li>
               <Link to="/login" onClick={() => setIsOpen(false)}>
-                <Button className="w-full text-left bg-red-400 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full h-auto border-none hover:!text-white">
+                <Button
+                  type="primary"
+                  danger
+                  className="w-full text-left font-bold px-4 py-3 rounded-full h-auto border-none"
+                  block
+                >
                   Login
                 </Button>
               </Link>
             </li>
           )}
         </ul>
-      </aside>
+      </Drawer>
     </div>
   );
 };

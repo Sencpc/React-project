@@ -2,6 +2,29 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import CustomerDashboardLayout from "./CustomerDashboardLayout";
 import { useAuth } from "../../../context/AuthContext";
 import { API_BASE_URL } from "../../../config/env.js";
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Empty,
+  List,
+  Row,
+  Segmented,
+  Space,
+  Spin,
+  Statistic,
+  Tag,
+  Typography,
+} from "antd";
+import {
+  CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  DollarOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 
 const DEFAULT_PAGE_SIZE = 10;
 const ACTIVE_BOOKING_STATUSES = ["pending", "confirmed", "in-progress"];
@@ -111,21 +134,18 @@ const determineStatusKey = (booking, nowTimestamp) => {
 const statusConfig = {
   upcoming: {
     label: "Upcoming",
-    color: "bg-blue-100 text-blue-700",
-    icon: "📅",
-    borderColor: "border-blue-200",
+    tagColor: "blue",
+    icon: <CalendarOutlined />,
   },
   completed: {
     label: "Completed",
-    color: "bg-green-100 text-green-700",
-    icon: "✓",
-    borderColor: "border-green-200",
+    tagColor: "green",
+    icon: <CheckCircleOutlined />,
   },
   cancelled: {
     label: "Cancelled",
-    color: "bg-red-100 text-red-700",
-    icon: "✕",
-    borderColor: "border-red-200",
+    tagColor: "red",
+    icon: <CloseCircleOutlined />,
   },
 };
 
@@ -299,115 +319,85 @@ const CustomerHistory = () => {
 
   return (
     <CustomerDashboardLayout title="Booking History">
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm mb-1">Total Bookings</p>
-                <p className="text-3xl font-bold">{totalBookingsCount}</p>
-              </div>
-              <div className="text-4xl">📊</div>
-            </div>
-          </div>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Total Bookings"
+                value={totalBookingsCount}
+                prefix={<CalendarOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Upcoming"
+                value={stats.upcoming}
+                prefix={<ClockCircleOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Completed"
+                value={stats.completed}
+                prefix={<CheckCircleOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} md={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Cancelled"
+                value={stats.cancelled}
+                prefix={<CloseCircleOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm mb-1">Upcoming</p>
-                <p className="text-3xl font-bold">{stats.upcoming}</p>
-              </div>
-              <div className="text-4xl">📅</div>
-            </div>
-          </div>
+        <Card>
+          <Space align="center" wrap>
+            <Typography.Text strong>Filter by Status:</Typography.Text>
+            <Segmented
+              value={filterStatus}
+              options={filterOptions.map((option) => ({
+                label: `${option.label} (${option.count})`,
+                value: option.value,
+              }))}
+              onChange={(value) => handleFilterChange(value)}
+            />
+          </Space>
+        </Card>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm mb-1">Completed</p>
-                <p className="text-3xl font-bold">{stats.completed}</p>
-              </div>
-              <div className="text-4xl">✓</div>
-            </div>
-          </div>
+        {error && <Alert type="error" showIcon message={error} />}
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm mb-1">Cancelled</p>
-                <p className="text-3xl font-bold">{stats.cancelled}</p>
-              </div>
-              <div className="text-4xl">✕</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="font-semibold text-gray-700">
-              Filter by Status:
-            </span>
-            <div className="flex gap-2 flex-wrap">
-              {filterOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleFilterChange(option.value)}
-                  className={`px-5 py-2 rounded-full font-medium transition-all duration-300 ${
-                    filterStatus === option.value
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg transform scale-105"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {`${option.label} (${option.count})`}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          {bookings.length === 0 && loading ? (
-            <div className="bg-white rounded-lg shadow-md p-12 text-center text-gray-600">
-              Loading booking history...
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-12 text-center">
-              <svg
-                className="w-20 h-20 text-gray-300 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
-              </svg>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                No Bookings Found
-              </h3>
-              <p className="text-gray-500">
-                No bookings match the selected filter.
-              </p>
-            </div>
-          ) : (
-            bookings.map((booking) => {
-              const bookingId =
-                booking?.id ?? booking?._id ?? booking?.startTime;
+        {bookings.length === 0 && loading ? (
+          <Card>
+            <Space align="center">
+              <Spin />
+              <Typography.Text type="secondary">
+                Loading booking history...
+              </Typography.Text>
+            </Space>
+          </Card>
+        ) : bookings.length === 0 ? (
+          <Card>
+            <Empty description="No bookings match the selected filter." />
+          </Card>
+        ) : (
+          <List
+            dataSource={bookings}
+            renderItem={(booking) => {
+              const bookingId = booking?.id ?? booking?._id ?? booking?.startTime;
               const statusKey = determineStatusKey(booking, nowTimestamp);
               const config = statusConfig[statusKey] ?? {
                 label: toTitle(statusKey),
-                color: "bg-gray-100 text-gray-700",
-                icon: "ℹ️",
-                borderColor: "border-gray-200",
+                tagColor: "default",
+                icon: <CalendarOutlined />,
               };
 
               const startDateText = formatDate(booking?.startTime);
@@ -419,155 +409,84 @@ const CustomerHistory = () => {
               const serviceSummary = summarizeServices(booking?.services);
 
               return (
-                <div
-                  key={bookingId}
-                  className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 ${config.borderColor}`}
-                >
-                  <div className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-start gap-4">
-                          <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg p-3 flex items-center justify-center min-w-[60px]">
-                            <svg
-                              className="w-8 h-8 text-purple-500"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                              ></path>
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-800 mb-1">
-                              {serviceSummary}
-                            </h3>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                              <div className="flex items-center gap-1">
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  ></path>
-                                </svg>
-                                <span>{startDateText}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  ></path>
-                                </svg>
-                                <span>{startTimeText}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  ></path>
-                                </svg>
-                                <span>{stylistName}</span>
-                              </div>
-                            </div>
-                            <div className="text-xs text-gray-500 mt-2">
-                              Booked on: {bookedOnText}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                <List.Item key={bookingId}>
+                  <Card style={{ width: "100%" }}>
+                    <Row gutter={[16, 16]} align="middle">
+                      <Col xs={24} md={16}>
+                        <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                          <Typography.Title level={5} style={{ margin: 0 }}>
+                            {serviceSummary}
+                          </Typography.Title>
+                          <Space wrap>
+                            <Space size={6}>
+                              <CalendarOutlined />
+                              <Typography.Text type="secondary">{startDateText}</Typography.Text>
+                            </Space>
+                            <Space size={6}>
+                              <ClockCircleOutlined />
+                              <Typography.Text type="secondary">{startTimeText}</Typography.Text>
+                            </Space>
+                            <Space size={6}>
+                              <UserOutlined />
+                              <Typography.Text type="secondary">{stylistName}</Typography.Text>
+                            </Space>
+                          </Space>
+                          <Typography.Text type="secondary">
+                            Booked on: {bookedOnText}
+                          </Typography.Text>
+                        </Space>
+                      </Col>
 
-                      <div className="flex md:flex-col items-center md:items-end gap-3">
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-purple-600">
-                            {priceText}
-                          </p>
-                        </div>
-                        <span
-                          className={`${config.color} px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-sm`}
-                        >
-                          <span className="text-lg">{config.icon}</span>
-                          {config.label}
-                        </span>
-                      </div>
-                    </div>
+                      <Col xs={24} md={8}>
+                        <Space direction="vertical" style={{ width: "100%" }}>
+                          <Typography.Text strong style={{ fontSize: 16 }}>
+                            <DollarOutlined /> {priceText}
+                          </Typography.Text>
+                          <Tag color={config.tagColor} icon={config.icon}>
+                            {config.label}
+                          </Tag>
+                        </Space>
+                      </Col>
+                    </Row>
 
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2 flex-wrap">
-                      {statusKey === "upcoming" && (
-                        <>
-                          <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-md hover:shadow-lg">
-                            Reschedule
-                          </button>
-                          <button className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-all duration-300 shadow-md hover:shadow-lg">
-                            Cancel Booking
-                          </button>
-                        </>
-                      )}
-                      {statusKey === "completed" && (
-                        <>
-                          <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-md hover:shadow-lg">
-                            Book Again
-                          </button>
-                          <button className="px-4 py-2 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-all duration-300 shadow-md hover:shadow-lg">
-                            Leave Review
-                          </button>
-                        </>
-                      )}
-                      <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all duration-300">
-                        View Details
-                      </button>
+                    <div style={{ marginTop: 12 }}>
+                      <Space wrap>
+                        {statusKey === "upcoming" && (
+                          <>
+                            <Button type="primary">Reschedule</Button>
+                            <Button danger>Cancel Booking</Button>
+                          </>
+                        )}
+                        {statusKey === "completed" && (
+                          <>
+                            <Button type="primary">Book Again</Button>
+                            <Button>Leave Review</Button>
+                          </>
+                        )}
+                        <Button>View Details</Button>
+                      </Space>
                     </div>
-                  </div>
-                </div>
+                  </Card>
+                </List.Item>
               );
-            })
-          )}
+            }}
+          />
+        )}
 
-          {loading && page > 1 && (
-            <div className="text-center text-gray-500 py-4">
-              Loading more bookings...
-            </div>
-          )}
+        {loading && page > 1 && (
+          <Typography.Text type="secondary" style={{ textAlign: "center" }}>
+            Loading more bookings...
+          </Typography.Text>
+        )}
 
-          {pagination.hasNextPage && (
-            <div className="flex justify-center pt-2">
-              <button
-                onClick={handleLoadMore}
-                disabled={loading}
-                className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium shadow-md hover:from-purple-600 hover:to-pink-600 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {loading ? "Loading..." : "Load More"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+        {pagination.hasNextPage && (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <Button type="primary" onClick={handleLoadMore} loading={loading}>
+              Load More
+            </Button>
+          </div>
+        )}
+      </Space>
     </CustomerDashboardLayout>
   );
 };
