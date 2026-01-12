@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "../../../App.css";
+import logo from "../../../assets/SharedAsset/logo.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -86,7 +87,7 @@ const AboutUs = () => {
     const logoUrl =
       typeof appearance.logoUrl === "string" && appearance.logoUrl.trim()
         ? appearance.logoUrl.trim()
-        : "/src/assets/SharedAsset/logo.png";
+        : logo;
 
     return {
       businessName,
@@ -106,34 +107,41 @@ const AboutUs = () => {
   }, [settings]);
 
   return (
-    <div style={{
-      display: "flex",
-      gap: 24,
-      alignItems: "flex-start",
-      padding: 24,
-      paddingTop: 100,
-      flexWrap: "wrap",
-      boxSizing: "border-box",
-    }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 24,
+        alignItems: "flex-start",
+        padding: 24,
+        paddingTop: 100,
+        flexWrap: "wrap",
+        boxSizing: "border-box",
+      }}
+    >
       <img
         src={view.logoUrl}
         alt="Foto Salon"
         style={{
-        maxWidth: 400,
-        width: "100%",
-        height: "auto",
-        objectFit: "cover",
-        borderRadius: 8,
-        flex: "0 0 auto",}}
+          maxWidth: 400,
+          width: "100%",
+          height: "auto",
+          objectFit: "cover",
+          borderRadius: 8,
+          flex: "0 0 auto",
+        }}
       />
 
-      <div style={{
-        flex: 1,
-        minWidth: 280,
-        marginTop: 20}} className="info-card">
+      <div
+        style={{
+          flex: 1,
+          minWidth: 280,
+          marginTop: 20,
+        }}
+        className="info-card"
+      >
         <div className="info-card">
-        <h1 className="sectionTitle">{view.businessName}</h1>
-        <p>{view.description}</p>
+          <h1 className="sectionTitle">{view.businessName}</h1>
+          <p>{view.description}</p>
         </div>
         <div style={{ marginTop: 16 }} className="info-card">
           <h3 className="sectionTitle">Kontak</h3>
